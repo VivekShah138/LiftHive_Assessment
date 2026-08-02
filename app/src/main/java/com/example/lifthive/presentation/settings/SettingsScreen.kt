@@ -210,7 +210,7 @@ fun SettingsScreen(
                                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             ) {
-                                Text("Load Demo split", fontSize = 11.sp)
+                                Text("Load Demo Data", fontSize = 11.sp)
                             }
 
                             Button(

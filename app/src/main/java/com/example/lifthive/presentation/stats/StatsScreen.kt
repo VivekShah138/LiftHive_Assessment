@@ -270,8 +270,16 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                 // Trend line drawn on a Canvas overlay
                 val barHeightFraction = volumes.map { (it.second / maxVal).toFloat() }
 
-                Box(modifier = Modifier.fillMaxWidth().height(220.dp)) {
-                    // Horizontal guide lines
+                // Horizontally scrollable bar chart
+                val barWidth = 52.dp
+                val chartWidth = barWidth * volumes.size + 6.dp * (volumes.size - 1)
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp)
+                ) {
+                    // Background guide lines span the full visible width
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         val lineY25 = size.height * 0.80f
                         val lineY50 = size.height * 0.60f
@@ -288,7 +296,10 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                     }
 
                     Row(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .horizontalScroll(rememberScrollState())
+                            .width(chartWidth),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.Bottom
                     ) {
@@ -303,7 +314,9 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                             else String.format(Locale.US, "%.0f", volume)
 
                             Column(
-                                modifier = Modifier.weight(1f),
+                                modifier = Modifier
+                                    .width(barWidth)
+                                    .fillMaxHeight(),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Bottom
                             ) {
@@ -312,11 +325,11 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
                                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                                        .padding(horizontal = 6.dp, vertical = 3.dp)
                                 ) {
                                     Text(
                                         text = displayVal,
-                                        fontSize = 9.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
                                     )
@@ -326,9 +339,9 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                                 // Gradient bar
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxWidth()
+                                        .fillMaxWidth(0.65f)
                                         .height(animatedFrac)
-                                        .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                                         .background(
                                             brush = Brush.verticalGradient(
                                                 colors = listOf(primaryColor, secondaryColor)
@@ -340,7 +353,7 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                                 // Date label
                                 Text(
                                     text = dateLabel,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center,
@@ -422,55 +435,66 @@ fun WeeklyTrendCard(weeklyVolumes: List<Pair<String, Double>>) {
                 }
             } else {
                 val maxVol = weeklyVolumes.maxOf { it.second }.let { if (it == 0.0) 1.0 else it }
-                weeklyVolumes.forEach { (label, vol) ->
-                    val fraction = (vol / maxVol).toFloat()
-                    val displayVol = if (vol >= 1000)
-                        String.format(Locale.US, "%,.1fk", vol / 1000)
-                    else String.format(Locale.US, "%,.0f", vol)
+                // Each week row is 280dp wide in a scrollable strip
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    weeklyVolumes.forEach { (label, vol) ->
+                        val fraction = (vol / maxVol).toFloat()
+                        val displayVol = if (vol >= 1000)
+                            String.format(Locale.US, "%,.1fk", vol / 1000)
+                        else String.format(Locale.US, "%,.0f", vol)
+                        val isThisWeek = label == "This week"
 
-                    val isThisWeek = label == "This week"
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = label,
-                            fontSize = 11.sp,
-                            fontWeight = if (isThisWeek) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isThisWeek) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(68.dp)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(20.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f))
+                        Column(
+                            modifier = Modifier.width(160.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isThisWeek) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isThisWeek) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "$displayVol kg",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isThisWeek) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            // Progress bar
                             Box(
                                 modifier = Modifier
-                                    .fillMaxHeight()
-                                    .fillMaxWidth(fraction)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(
-                                        brush = Brush.horizontalGradient(
-                                            colors = listOf(
-                                                MaterialTheme.colorScheme.tertiary,
-                                                MaterialTheme.colorScheme.primary
+                                    .fillMaxWidth()
+                                    .height(10.dp)
+                                    .clip(RoundedCornerShape(5.dp))
+                                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(fraction)
+                                        .clip(RoundedCornerShape(5.dp))
+                                        .background(
+                                            brush = Brush.horizontalGradient(
+                                                colors = if (isThisWeek)
+                                                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+                                                else
+                                                    listOf(MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.primary)
                                             )
                                         )
-                                    )
-                            )
+                                )
+                            }
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "$displayVol kg",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.width(60.dp),
-                            textAlign = TextAlign.End
-                        )
                     }
                 }
             }
