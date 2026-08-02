@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import java.util.Locale
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,6 +134,11 @@ fun StatsScreen(
                             }
                         }
                     }
+                }
+
+                // Consistency Map Card (GitHub-style)
+                item {
+                    WorkoutContributionGraph(workoutDates = stats.workoutDates)
                 }
 
                 // Volume Progress Chart Card
@@ -346,3 +352,131 @@ fun VolumeBarChart(
         }
     }
 }
+
+@Composable
+fun WorkoutContributionGraph(
+    workoutDates: List<Long>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Consistency Map",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Log workout sessions to fill the last 12 weeks grid",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Compute dates for the last 12 weeks (7 rows, 12 columns = 84 cells)
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.WEEK_OF_YEAR, -11)
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+
+            val startDateMillis = calendar.timeInMillis
+
+            // Group workouts by day string: "YYYY-MM-DD"
+            val activeDates = remember(workoutDates) {
+                workoutDates.map {
+                    val cal = Calendar.getInstance().apply { timeInMillis = it }
+                    "" + cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.MONTH) + "-" + cal.get(Calendar.DAY_OF_MONTH)
+                }.toSet()
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Day of week labels
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(top = 2.dp)
+                ) {
+                    val days = listOf("Sun", "", "Tue", "", "Thu", "", "Sat")
+                    days.forEach { day ->
+                        Text(
+                            text = day,
+                            fontSize = 8.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.height(12.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                // Columns (12 weeks)
+                val cellCalendar = Calendar.getInstance()
+                for (weekIndex in 0 until 12) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        for (dayIndex in 0 until 7) {
+                            cellCalendar.timeInMillis = startDateMillis
+                            cellCalendar.add(Calendar.DAY_OF_YEAR, weekIndex * 7 + dayIndex)
+
+                            val dateKey = "" + cellCalendar.get(Calendar.YEAR) + "-" + cellCalendar.get(Calendar.MONTH) + "-" + cellCalendar.get(Calendar.DAY_OF_MONTH)
+                            val hasWorkout = activeDates.contains(dateKey)
+                            val isFuture = cellCalendar.timeInMillis > System.currentTimeMillis()
+
+                            val color = when {
+                                isFuture -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                hasWorkout -> MaterialTheme.colorScheme.primary
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(RoundedCornerShape(2.dp))
+                                    .background(color)
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Less",
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Box(modifier = Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.surfaceVariant))
+                Spacer(modifier = Modifier.width(4.dp))
+                Box(modifier = Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.primary))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Workout Day",
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            }
+        }
+    }
+}
+
