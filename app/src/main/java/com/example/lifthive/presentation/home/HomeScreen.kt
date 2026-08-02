@@ -1,13 +1,18 @@
 package com.example.lifthive.presentation.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,6 +35,7 @@ import com.example.lifthive.domain.model.Workout
 import com.example.lifthive.domain.model.WorkoutStats
 import com.example.lifthive.presentation.MainViewModel
 import com.example.lifthive.presentation.navigation.Screens
+import kotlinx.coroutines.flow.snapshotFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -46,6 +52,32 @@ fun HomeScreen(
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // ── Scroll-aware header visibility ──────────────────────────────────────
+    val listState = rememberLazyListState()
+    var isHeaderVisible by remember { mutableStateOf(true) }
+    var previousIndex by remember { mutableIntStateOf(0) }
+    var previousScrollOffset by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            Pair(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
+        }.collect { (index, offset) ->
+            val isScrollingDown = when {
+                index > previousIndex -> true
+                index < previousIndex -> false
+                else -> offset > previousScrollOffset
+            }
+            val delta = offset - previousScrollOffset
+            when {
+                isScrollingDown && (delta > 10 || index > previousIndex) -> isHeaderVisible = false
+                !isScrollingDown && (delta < -10 || index < previousIndex) -> isHeaderVisible = true
+            }
+            if (index == 0 && offset == 0) isHeaderVisible = true
+            previousIndex = index
+            previousScrollOffset = offset
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -110,29 +142,52 @@ fun HomeScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            // Dashboard Summary Banner
-            state.stats?.let { stats ->
-                DashboardSummaryCard(stats = stats)
-                Spacer(modifier = Modifier.height(16.dp))
+
+            // ── Collapsing header (dashboard + search + feed title) ──────────
+            AnimatedVisibility(
+                visible = isHeaderVisible,
+                enter = expandVertically(
+                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                ) + fadeIn(
+                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                ),
+                exit = shrinkVertically(
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                ) + fadeOut(
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                )
+            ) {
+                Column {
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Dashboard card — tap navigates to Analytics
+                    state.stats?.let { stats ->
+                        DashboardSummaryCard(
+                            stats = stats,
+                            onClick = { navController.navigate(Screens.Stats) }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Search bar
+                    SearchBar(
+                        query = state.searchQuery,
+                        onQueryChange = { viewModel.onSearchQueryChange(it) }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Feed title
+                    Text(
+                        text = "Workout Feed",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
 
-            // Search Bar
-            SearchBar(
-                query = state.searchQuery,
-                onQueryChange = { viewModel.onSearchQueryChange(it) }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Workouts Feed Title
-            Text(
-                text = "Workout Feed",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Loading / List Content
+            // ── List ─────────────────────────────────────────────────────────
             if (state.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -144,6 +199,7 @@ fun HomeScreen(
                 EmptyStateView()
             } else {
                 LazyColumn(
+                    state = listState,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(bottom = 80.dp),
                     modifier = Modifier.fillMaxSize()
@@ -152,7 +208,6 @@ fun HomeScreen(
                         items = state.workouts,
                         key = { it.id }
                     ) { workout ->
-                        // Swipe to delete container
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = { dismissValue ->
                                 if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
@@ -168,19 +223,14 @@ fun HomeScreen(
                                         }
                                     }
                                     true
-                                } else {
-                                    false
-                                }
+                                } else false
                             }
                         )
-
                         SwipeToDismissBox(
                             state = dismissState,
                             backgroundContent = {
-                                val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
-                                    Color(0xFFE57373)
-                                } else Color.Transparent
-
+                                val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart)
+                                    Color(0xFFE57373) else Color.Transparent
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -219,7 +269,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun DashboardSummaryCard(stats: WorkoutStats) {
+fun DashboardSummaryCard(stats: WorkoutStats, onClick: () -> Unit = {}) {
     // Greeting based on time of day
     val greeting = remember {
         when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
@@ -242,7 +292,9 @@ fun DashboardSummaryCard(stats: WorkoutStats) {
     val secondary = MaterialTheme.colorScheme.secondary
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
