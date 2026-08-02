@@ -66,10 +66,14 @@ class WorkoutRepositoryImpl @Inject constructor(
             notes = workout.notes
         )
         val workoutId = dao.insertWorkout(workoutEntity)
-        
-        // Delete existing exercises if editing
+
         if (workout.id != 0L) {
-            dao.deleteExercisesForWorkout(workout.id)
+            val remainingIds = workout.exercises.map { it.id }.filter { it != 0L }
+            if (remainingIds.isNotEmpty()) {
+                dao.deleteExercisesNotInList(workout.id, remainingIds)
+            } else {
+                dao.deleteExercisesForWorkout(workout.id)
+            }
         }
 
         val exerciseEntities = workout.exercises.map { ex ->

@@ -30,4 +30,7 @@ interface WorkoutDao {
 
     @Query("DELETE FROM exercises WHERE workoutId = :workoutId")
     suspend fun deleteExercisesForWorkout(workoutId: Long)
+
+    @Query("DELETE FROM exercises WHERE workoutId = :workoutId AND id NOT IN (:remainingIds)")
+    suspend fun deleteExercisesNotInList(workoutId: Long, remainingIds: List<Long>)
 }
