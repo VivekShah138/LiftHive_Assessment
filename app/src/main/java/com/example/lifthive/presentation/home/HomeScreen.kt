@@ -111,7 +111,7 @@ fun HomeScreen(
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
-            isHeaderVisible = index < 3
+            isHeaderVisible = index < 1
         }
     }
 
