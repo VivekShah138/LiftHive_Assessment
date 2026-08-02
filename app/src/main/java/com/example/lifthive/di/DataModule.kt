@@ -2,9 +2,9 @@ package com.example.lifthive.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.lifthive.data.local.WorkoutDao
-import com.example.lifthive.data.local.WorkoutDatabase
-import com.example.lifthive.data.preferences.PreferencesDataStore
+import com.example.lifthive.data.local.room.WorkoutDao
+import com.example.lifthive.data.local.room.WorkoutDatabase
+import com.example.lifthive.data.local.preferences.PreferencesDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

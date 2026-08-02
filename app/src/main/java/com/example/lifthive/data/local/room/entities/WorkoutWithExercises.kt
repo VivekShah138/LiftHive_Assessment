@@ -1,4 +1,4 @@
-package com.example.lifthive.data.local.entities
+package com.example.lifthive.data.local.room.entities
 
 import androidx.room.Embedded
 import androidx.room.Relation

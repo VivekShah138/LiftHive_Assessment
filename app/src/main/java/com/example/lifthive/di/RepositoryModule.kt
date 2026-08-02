@@ -1,5 +1,7 @@
 package com.example.lifthive.di
 
+import com.example.lifthive.data.repository.PreferencesRepositoryImpl
+import com.example.lifthive.domain.repository.PreferencesRepository
 import com.example.lifthive.data.repository.WorkoutRepositoryImpl
 import com.example.lifthive.domain.repository.WorkoutRepository
 import dagger.Binds
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindWorkoutRepository(
         workoutRepositoryImpl: WorkoutRepositoryImpl
     ): WorkoutRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPreferencesRepository(
+        preferencesRepositoryImpl: PreferencesRepositoryImpl
+    ): PreferencesRepository
 }

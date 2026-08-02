@@ -1,4 +1,4 @@
-package com.example.lifthive.data.preferences
+package com.example.lifthive.data.local.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore

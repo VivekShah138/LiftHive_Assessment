@@ -1,9 +1,9 @@
-package com.example.lifthive.data.local
+package com.example.lifthive.data.local.room
 
 import androidx.room.*
-import com.example.lifthive.data.local.entities.ExerciseEntity
-import com.example.lifthive.data.local.entities.WorkoutEntity
-import com.example.lifthive.data.local.entities.WorkoutWithExercises
+import com.example.lifthive.data.local.room.entities.ExerciseEntity
+import com.example.lifthive.data.local.room.entities.WorkoutEntity
+import com.example.lifthive.data.local.room.entities.WorkoutWithExercises
 import kotlinx.coroutines.flow.Flow
 
 @Dao

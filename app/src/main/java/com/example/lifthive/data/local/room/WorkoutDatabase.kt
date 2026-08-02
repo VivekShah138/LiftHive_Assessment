@@ -1,9 +1,9 @@
-package com.example.lifthive.data.local
+package com.example.lifthive.data.local.room
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import com.example.lifthive.data.local.entities.ExerciseEntity
-import com.example.lifthive.data.local.entities.WorkoutEntity
+import com.example.lifthive.data.local.room.entities.ExerciseEntity
+import com.example.lifthive.data.local.room.entities.WorkoutEntity
 
 @Database(
     entities = [WorkoutEntity::class, ExerciseEntity::class],

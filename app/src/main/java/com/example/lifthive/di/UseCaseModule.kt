@@ -1,10 +1,13 @@
 package com.example.lifthive.di
 
+import com.example.lifthive.domain.repository.PreferencesRepository
 import com.example.lifthive.domain.repository.WorkoutRepository
 import com.example.lifthive.domain.usecase.DeleteWorkoutUseCase
 import com.example.lifthive.domain.usecase.GetStatsUseCase
+import com.example.lifthive.domain.usecase.GetThemeUseCase
 import com.example.lifthive.domain.usecase.GetWorkoutByIdUseCase
 import com.example.lifthive.domain.usecase.GetWorkoutsUseCase
+import com.example.lifthive.domain.usecase.SaveThemeUseCase
 import com.example.lifthive.domain.usecase.SaveWorkoutUseCase
 import dagger.Module
 import dagger.Provides
@@ -44,5 +47,17 @@ object UseCaseModule {
     @Singleton
     fun provideGetStatsUseCase(repository: WorkoutRepository): GetStatsUseCase {
         return GetStatsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetThemeUseCase(repository: PreferencesRepository): GetThemeUseCase {
+        return GetThemeUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSaveThemeUseCase(repository: PreferencesRepository): SaveThemeUseCase {
+        return SaveThemeUseCase(repository)
     }
 }

@@ -1,8 +1,8 @@
 package com.example.lifthive.data.repository
 
-import com.example.lifthive.data.local.WorkoutDao
-import com.example.lifthive.data.local.entities.ExerciseEntity
-import com.example.lifthive.data.local.entities.WorkoutEntity
+import com.example.lifthive.data.local.room.WorkoutDao
+import com.example.lifthive.data.local.room.entities.ExerciseEntity
+import com.example.lifthive.data.local.room.entities.WorkoutEntity
 import com.example.lifthive.domain.model.Exercise
 import com.example.lifthive.domain.model.Workout
 import com.example.lifthive.domain.repository.WorkoutRepository
