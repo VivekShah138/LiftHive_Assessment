@@ -65,7 +65,7 @@ class WorkoutRepositoryImpl @Inject constructor(
             date = workout.date,
             notes = workout.notes
         )
-        val workoutId = dao.insertWorkout(workoutEntity)
+        val workoutId = dao.upsertWorkout(workoutEntity)
 
         if (workout.id != 0L) {
             val remainingIds = workout.exercises.map { it.id }.filter { it != 0L }
@@ -86,7 +86,7 @@ class WorkoutRepositoryImpl @Inject constructor(
                 weight = ex.weight
             )
         }
-        dao.insertExercises(exerciseEntities)
+        dao.upsertExercises(exerciseEntities)
         return workoutId
     }
 
@@ -119,8 +119,8 @@ class WorkoutRepositoryImpl @Inject constructor(
             daysAgo: Int, title: String, notes: String,
             exercises: List<Triple<String, Pair<Int,Int>, Double>>
         ) {
-            val id = dao.insertWorkout(WorkoutEntity(title = title, date = dayMillis(daysAgo), notes = notes))
-            dao.insertExercises(exercises.map { (name, sr, w) ->
+            val id = dao.upsertWorkout(WorkoutEntity(title = title, date = dayMillis(daysAgo), notes = notes))
+            dao.upsertExercises(exercises.map { (name, sr, w) ->
                 ExerciseEntity(workoutId = id, name = name, sets = sr.first, reps = sr.second, weight = w)
             })
         }
