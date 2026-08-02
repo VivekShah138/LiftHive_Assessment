@@ -353,6 +353,20 @@ fun VolumeBarChart(
     }
 }
 
+data class ContributionDay(
+    val timeMillis: Long,
+    val isCompleted: Boolean
+)
+
+data class ContributionWeek(
+    val days: List<ContributionDay>
+)
+
+data class ContributionMonth(
+    val name: String,
+    val weeks: List<ContributionWeek>
+)
+
 @Composable
 fun WorkoutContributionGraph(
     workoutDates: List<Long>,
@@ -394,121 +408,138 @@ fun WorkoutContributionGraph(
             val startDateMillis = calendar.timeInMillis
 
             // Group workouts by day string: "YYYY-MM-DD"
-            val activeDates = remember(workoutDates) {
-                workoutDates.map {
+            val monthlyData = remember(workoutDates, startDateMillis) {
+                val activeDates = workoutDates.map {
                     val cal = Calendar.getInstance().apply { timeInMillis = it }
                     "" + cal.get(Calendar.YEAR) + "-" + cal.get(Calendar.MONTH) + "-" + cal.get(Calendar.DAY_OF_MONTH)
                 }.toSet()
-            }
 
-            // Compute Month Labels to display above the grid columns
-            val monthLabels = remember(startDateMillis) {
-                val labels = mutableListOf<Pair<Int, String>>() // Pair of (Week index, Month Name)
-                val cal = Calendar.getInstance()
-                var lastMonth = -1
+                val monthsList = mutableListOf<ContributionMonth>()
+                val weekCalendar = Calendar.getInstance()
+                val dayCalendar = Calendar.getInstance()
+
+                var currentMonthName = ""
+                var currentWeeks = mutableListOf<ContributionWeek>()
+
                 for (w in 0 until 12) {
-                    cal.timeInMillis = startDateMillis
-                    cal.add(Calendar.DAY_OF_YEAR, w * 7)
-                    val currentMonth = cal.get(Calendar.MONTH)
-                    if (currentMonth != lastMonth) {
-                        val monthName = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.getDefault()) ?: ""
-                        labels.add(Pair(w, monthName))
-                        lastMonth = currentMonth
+                    weekCalendar.timeInMillis = startDateMillis
+                    weekCalendar.add(Calendar.DAY_OF_YEAR, w * 7)
+
+                    val monthName = weekCalendar.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.getDefault()) ?: ""
+
+                    val daysList = mutableListOf<ContributionDay>()
+                    for (d in 0 until 7) {
+                        dayCalendar.timeInMillis = weekCalendar.timeInMillis
+                        dayCalendar.add(Calendar.DAY_OF_YEAR, d)
+
+                        val dateKey = "" + dayCalendar.get(Calendar.YEAR) + "-" + dayCalendar.get(Calendar.MONTH) + "-" + dayCalendar.get(Calendar.DAY_OF_MONTH)
+                        val isCompleted = activeDates.contains(dateKey)
+
+                        daysList.add(ContributionDay(dayCalendar.timeInMillis, isCompleted))
                     }
-                }
-                labels
-            }
 
-            // Month Labels Header Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 32.dp), // Skip the Day label column width (24dp) + spacer (4dp) + gap (4dp)
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                for (w in 0 until 12) {
-                    val label = monthLabels.firstOrNull { it.first == w }?.second ?: ""
-                    Box(
-                        modifier = Modifier.width(12.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        if (label.isNotEmpty()) {
-                            Text(
-                                text = label,
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Visible,
-                                modifier = Modifier.requiredWidth(36.dp)
-                            )
+                    val week = ContributionWeek(daysList)
+
+                    if (monthName != currentMonthName) {
+                        if (currentMonthName.isNotEmpty()) {
+                            monthsList.add(ContributionMonth(currentMonthName, currentWeeks))
                         }
+                        currentMonthName = monthName
+                        currentWeeks = mutableListOf(week)
+                    } else {
+                        currentWeeks.add(week)
                     }
                 }
+                if (currentMonthName.isNotEmpty()) {
+                    monthsList.add(ContributionMonth(currentMonthName, currentWeeks))
+                }
+                monthsList
             }
-            Spacer(modifier = Modifier.height(6.dp))
 
+            val dayLabels = listOf("Su", "", "Tu", "", "Th", "", "Sa")
+
+            // Outer Row for week labels and graph
             Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth()
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Day of week labels (Sun, Tue, Thu, Sat)
+                // Week Label column
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.width(24.dp) // Generous fixed width to prevent text truncation
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    val days = listOf("Sun", "", "Tue", "", "Thu", "", "Sat")
-                    days.forEach { day ->
+                    // Spacer to match Month label height + padding
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    dayLabels.forEach { day ->
                         Box(
-                            modifier = Modifier.height(12.dp), // Match exact height of cells
-                            contentAlignment = Alignment.CenterStart
+                            modifier = Modifier.size(14.dp),
+                            contentAlignment = Alignment.CenterEnd
                         ) {
                             if (day.isNotEmpty()) {
                                 Text(
                                     text = day,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
                                 )
                             }
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.width(4.dp))
-
-                // Columns (12 weeks)
-                val cellCalendar = Calendar.getInstance()
-                for (weekIndex in 0 until 12) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        for (dayIndex in 0 until 7) {
-                            cellCalendar.timeInMillis = startDateMillis
-                            cellCalendar.add(Calendar.DAY_OF_YEAR, weekIndex * 7 + dayIndex)
-
-                            val dateKey = "" + cellCalendar.get(Calendar.YEAR) + "-" + cellCalendar.get(Calendar.MONTH) + "-" + cellCalendar.get(Calendar.DAY_OF_MONTH)
-                            val hasWorkout = activeDates.contains(dateKey)
-                            val isFuture = cellCalendar.timeInMillis > System.currentTimeMillis()
-
-                            val color = when {
-                                isFuture -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
-                                hasWorkout -> MaterialTheme.colorScheme.primary
-                                else -> MaterialTheme.colorScheme.surfaceVariant
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .size(12.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(color)
+                // Scrollable row of months
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    monthlyData.forEach { (monthName, weeks) ->
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            // Month Label
+                            Text(
+                                text = monthName,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                             )
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                weeks.forEach { week ->
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        week.days.forEach { day ->
+                                            val color = if (day.isCompleted) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                // High contrast tint for empty days (visible in both light and dark themes)
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                            }
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(14.dp)
+                                                    .background(
+                                                        color = color,
+                                                        shape = RoundedCornerShape(3.dp)
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth(),
@@ -520,9 +551,23 @@ fun WorkoutContributionGraph(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Box(modifier = Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.surfaceVariant))
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(2.dp)
+                        )
+                )
                 Spacer(modifier = Modifier.width(4.dp))
-                Box(modifier = Modifier.size(10.dp).clip(RoundedCornerShape(2.dp)).background(MaterialTheme.colorScheme.primary))
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(2.dp)
+                        )
+                )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Workout Day",
