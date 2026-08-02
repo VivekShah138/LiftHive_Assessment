@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.lifthive.presentation.details.components.DetailedExerciseCard
+import com.example.lifthive.presentation.details.utils.WorkoutDetailsUiEffect
 import com.example.lifthive.presentation.navigation.Screens
 import java.text.SimpleDateFormat
 import java.util.Date

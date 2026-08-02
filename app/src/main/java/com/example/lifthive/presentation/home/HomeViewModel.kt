@@ -16,11 +16,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-sealed interface HomeEvent {
-    data class SearchQueryChanged(val query: String) : HomeEvent
-    data class DeleteWorkout(val workout: Workout) : HomeEvent
-    object UndoDelete : HomeEvent
-}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(

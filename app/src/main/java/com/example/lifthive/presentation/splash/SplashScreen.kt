@@ -34,12 +34,10 @@ fun SplashScreen(navController: NavController) {
     val alpha = remember { Animatable(0f) }
 
     LaunchedEffect(key1 = true) {
-        // Run animations concurrently
         scale.animateTo(
             targetValue = 1.2f,
             animationSpec = tween(durationMillis = 800)
         )
-        // Bounce back slightly
         scale.animateTo(
             targetValue = 1.0f,
             animationSpec = tween(durationMillis = 200)
@@ -51,7 +49,6 @@ fun SplashScreen(navController: NavController) {
             targetValue = 1f,
             animationSpec = tween(durationMillis = 1000)
         )
-        // Delay to let animation sit, then navigate
         delay(1200)
         navController.navigate(Screens.Home) {
             popUpTo(Screens.Splash) { inclusive = true }

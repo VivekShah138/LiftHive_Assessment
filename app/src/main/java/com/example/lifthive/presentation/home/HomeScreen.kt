@@ -76,7 +76,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreenRoot(
     navController: NavController,
-    mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()

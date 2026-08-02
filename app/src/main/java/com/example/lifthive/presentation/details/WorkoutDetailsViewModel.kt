@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.lifthive.domain.usecase.DeleteWorkoutUseCase
 import com.example.lifthive.domain.usecase.GetWorkoutByIdUseCase
+import com.example.lifthive.presentation.details.utils.WorkoutDetailsUiEffect
 import com.example.lifthive.presentation.navigation.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -18,14 +19,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-sealed interface WorkoutDetailsEvent {
-    object DeleteWorkout : WorkoutDetailsEvent
-}
 
-sealed interface WorkoutDetailsUiEffect {
-    object WorkoutDeleted : WorkoutDetailsUiEffect
-    data class ShowError(val message: String) : WorkoutDetailsUiEffect
-}
+
+
 
 @HiltViewModel
 class WorkoutDetailsViewModel @Inject constructor(

@@ -8,6 +8,8 @@ import com.example.lifthive.domain.model.Exercise
 import com.example.lifthive.domain.model.Workout
 import com.example.lifthive.domain.usecase.GetWorkoutByIdUseCase
 import com.example.lifthive.domain.usecase.SaveWorkoutUseCase
+import com.example.lifthive.presentation.add_edit.AddEditWorkoutEvent
+import com.example.lifthive.presentation.add_edit.utils.AddEditWorkoutUiEffect
 import com.example.lifthive.presentation.navigation.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -20,24 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-sealed interface AddEditWorkoutEvent {
-    data class TitleChanged(val title: String) : AddEditWorkoutEvent
-    data class NotesChanged(val notes: String) : AddEditWorkoutEvent
-    data class DateChanged(val date: Long) : AddEditWorkoutEvent
-    data class ExerciseNameChanged(val name: String) : AddEditWorkoutEvent
-    data class ExerciseSetsChanged(val sets: String) : AddEditWorkoutEvent
-    data class ExerciseRepsChanged(val reps: String) : AddEditWorkoutEvent
-    data class ExerciseWeightChanged(val weight: String) : AddEditWorkoutEvent
-    object AddExercise : AddEditWorkoutEvent
-    data class RemoveExercise(val index: Int) : AddEditWorkoutEvent
-    object ClearError : AddEditWorkoutEvent
-    object SaveWorkout : AddEditWorkoutEvent
-}
 
-sealed interface AddEditWorkoutUiEffect {
-    object WorkoutSaved : AddEditWorkoutUiEffect
-    data class ShowToast(val message: String) : AddEditWorkoutUiEffect
-}
 
 @HiltViewModel
 class AddEditWorkoutViewModel @Inject constructor(

@@ -14,7 +14,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
     private val prefs = application.getSharedPreferences("lifthive_prefs", Context.MODE_PRIVATE)
     
-    private val _isDarkTheme = mutableStateOf(prefs.getBoolean("is_dark_theme", true)) // Default to dark theme for premium fitness aesthetic
+    private val _isDarkTheme = mutableStateOf(prefs.getBoolean("is_dark_theme", true))
     val isDarkTheme: State<Boolean> = _isDarkTheme
 
     fun toggleTheme() {

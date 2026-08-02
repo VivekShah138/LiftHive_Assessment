@@ -42,6 +42,10 @@ data class ContributionMonth(
     val weeks: List<ContributionWeek>
 )
 
+/**
+ * A GitHub-style heat map card showing workout consistency over the last 12 weeks.
+ * Displays daily activity blocks grouped by week and month.
+ */
 @Composable
 fun WorkoutContributionGraph(
     workoutDates: List<Long>,

@@ -27,7 +27,7 @@ fun SetupNavGraph(
         }
         
         composable<Screens.Home> {
-            HomeScreenRoot(navController = navController, mainViewModel = mainViewModel)
+            HomeScreenRoot(navController = navController)
         }
         
         composable<Screens.AddEditWorkout> {
