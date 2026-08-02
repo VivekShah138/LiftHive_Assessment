@@ -254,8 +254,8 @@ fun AddEditWorkoutScreen(
                                 OutlinedTextField(
                                     value = state.exerciseWeight,
                                     onValueChange = { viewModel.onExerciseWeightChange(it) },
-                                    label = { Text("Weight (kg)") },
-                                    modifier = Modifier.weight(1.2f),
+                                    label = { Text("Wt (kg)", maxLines = 1) },
+                                    modifier = Modifier.weight(1.5f),
                                     singleLine = true,
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                                     colors = OutlinedTextFieldDefaults.colors(
