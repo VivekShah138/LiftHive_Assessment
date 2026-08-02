@@ -57,7 +57,7 @@ fun HomeScreen(
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
-            isHeaderVisible = index < 3
+            isHeaderVisible = index < 1
         }
     }
 
@@ -125,18 +125,17 @@ fun HomeScreen(
                 .padding(horizontal = 16.dp)
         ) {
 
-            // ── Collapsing header (dashboard + search + feed title) ──────────
             AnimatedVisibility(
                 visible = isHeaderVisible,
                 enter = expandVertically(
-                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
                 ) + fadeIn(
-                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
                 ),
                 exit = shrinkVertically(
-                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
                 ) + fadeOut(
-                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                    animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
                 )
             ) {
                 Column {
