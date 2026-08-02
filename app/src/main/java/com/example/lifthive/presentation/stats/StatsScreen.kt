@@ -3,14 +3,25 @@ package com.example.lifthive.presentation.stats
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import kotlin.math.roundToInt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,102 +83,305 @@ fun StatsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                // Metric cards grid
+                // ── Row 1: 4 key stat chips ──────────────────────────
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        StatsMetricRow(
-                            title1 = "Total Sessions",
-                            value1 = "${stats.totalWorkouts}",
-                            icon1 = Icons.Default.FitnessCenter,
-                            tint1 = MaterialTheme.colorScheme.primary,
-                            title2 = "Top Lift",
-                            value2 = stats.mostFrequentExercise,
-                            icon2 = Icons.Default.Speed,
-                            tint2 = MaterialTheme.colorScheme.secondary
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        StatChip(
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Default.FitnessCenter,
+                            label = "Sessions",
+                            value = "${stats.totalWorkouts}",
+                            tint = MaterialTheme.colorScheme.primary
                         )
+                        StatChip(
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Default.LocalFireDepartment,
+                            label = "Streak",
+                            value = "${stats.currentStreak}d",
+                            tint = Color(0xFFFF6B35)
+                        )
+                        StatChip(
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Default.TrendingUp,
+                            label = "Best Streak",
+                            value = "${stats.longestStreak}d",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                        StatChip(
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Default.Speed,
+                            label = "Avg / Session",
+                            value = if (stats.avgVolumePerSession >= 1000)
+                                String.format(Locale.US, "%.1fk", stats.avgVolumePerSession / 1000)
+                            else String.format(Locale.US, "%.0f", stats.avgVolumePerSession),
+                            tint = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
 
-                        // Big Volume Card
-                        val formattedWeight = String.format(Locale.US, "%,.0f", stats.totalWeightLifted)
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            )
+                // ── PR Banner ─────────────────────────────────────────
+                item {
+                    val prVol = if (stats.bestSessionVolume >= 1000)
+                        String.format(Locale.US, "%,.1fk kg", stats.bestSessionVolume / 1000)
+                    else String.format(Locale.US, "%,.0f kg", stats.bestSessionVolume)
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            Icon(
+                                imageVector = Icons.Default.EmojiEvents,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(36.dp)
+                            )
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Personal Record — Best Session",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                )
+                                Text(
+                                    text = prVol,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                            Text(
+                                text = stats.bestSessionLabel,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                // ── Consistency Map ───────────────────────────────────
+                item {
+                    WorkoutContributionGraph(workoutDates = stats.workoutDates)
+                }
+
+                // ── Training Intensity Progress ───────────────────────
+                item {
+                    TrainingIntensityCard(volumes = stats.lastWorkoutsVolume)
+                }
+
+                // ── Weekly Volume Trend ───────────────────────────────
+                item {
+                    WeeklyTrendCard(weeklyVolumes = stats.weeklyVolumes)
+                }
+
+                // ── Top Exercises Podium ──────────────────────────────
+                item {
+                    TopExercisesCard(topExercises = stats.topExercises)
+                }
+            }
+        }
+    }
+}
+
+// ── Compact stat chip ────────────────────────────────────────────────────
+@Composable
+fun StatChip(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    label: String,
+    value: String,
+    tint: Color
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(tint.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = value, fontSize = 18.sp, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
+            Text(text = label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+// ── Training Intensity Progress (redesigned bar chart) ────────────────────
+@Composable
+fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.TrendingUp, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text("Training Intensity", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Volume per session  (sets × reps × weight kg)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+
+            if (volumes.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
+                    Text("Log workouts to see your intensity trend", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                }
+            } else {
+                val maxVal = volumes.maxOf { it.second }.let { if (it == 0.0) 1.0 else it }
+                var startAnimate by remember { mutableStateOf(false) }
+                LaunchedEffect(true) { startAnimate = true }
+
+                val primaryColor = MaterialTheme.colorScheme.primary
+                val secondaryColor = MaterialTheme.colorScheme.secondary
+                val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
+
+                // Trend line drawn on a Canvas overlay
+                val barHeightFraction = volumes.map { (it.second / maxVal).toFloat() }
+
+                Box(modifier = Modifier.fillMaxWidth().height(220.dp)) {
+                    // Horizontal guide lines
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        val lineY25 = size.height * 0.80f
+                        val lineY50 = size.height * 0.60f
+                        val lineY75 = size.height * 0.40f
+                        listOf(lineY25, lineY50, lineY75).forEach { y ->
+                            drawLine(
+                                color = surfaceVariantColor,
+                                start = Offset(0f, y),
+                                end = Offset(size.width, y),
+                                strokeWidth = 1.dp.toPx(),
+                                cap = StrokeCap.Round
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        volumes.forEachIndexed { i, (dateLabel, volume) ->
+                            val targetFrac = barHeightFraction[i]
+                            val animatedFrac by animateDpAsState(
+                                targetValue = if (startAnimate) (targetFrac * 140).dp else 0.dp,
+                                animationSpec = tween(durationMillis = 900, delayMillis = i * 80)
+                            )
+                            val displayVal = if (volume >= 1000)
+                                String.format(Locale.US, "%.1fk", volume / 1000.0)
+                            else String.format(Locale.US, "%.0f", volume)
+
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Bottom
                             ) {
+                                // Value chip above bar
                                 Box(
                                     modifier = Modifier
-                                        .size(50.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
-                                    contentAlignment = Alignment.Center
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                                        .padding(horizontal = 4.dp, vertical = 2.dp)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Scale,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.tertiary,
-                                        modifier = Modifier.size(28.dp)
+                                    Text(
+                                        text = displayVal,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column {
-                                    Text(
-                                        text = "Total Cumulative Volume",
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "$formattedWeight kg",
-                                        fontSize = 24.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                // Gradient bar
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(animatedFrac)
+                                        .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                                        .background(
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(primaryColor, secondaryColor)
+                                            )
+                                        )
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                // Date label
+                                Text(
+                                    text = dateLabel,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1
+                                )
                             }
                         }
                     }
                 }
 
-                // Consistency Map Card (GitHub-style)
-                item {
-                    WorkoutContributionGraph(workoutDates = stats.workoutDates)
-                }
-
-                // Volume Progress Chart Card
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
+                // Summary row: trend change
+                if (volumes.size >= 2) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    val first = volumes.first().second
+                    val last = volumes.last().second
+                    val changePercent = if (first > 0) ((last - first) / first * 100).roundToInt() else 0
+                    val isUp = changePercent >= 0
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isUp) Color(0xFF22C55E).copy(alpha = 0.12f)
+                                else Color(0xFFEF4444).copy(alpha = 0.12f)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
-                        ) {
-                            Text(
-                                text = "Training Intensity Progress",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            Text(
-                                text = "Total volume (sets × reps × weight) per session",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            VolumeBarChart(volumes = stats.lastWorkoutsVolume)
-                        }
+                        Icon(
+                            imageVector = Icons.Default.TrendingUp,
+                            contentDescription = null,
+                            tint = if (isUp) Color(0xFF22C55E) else Color(0xFFEF4444),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isUp) "+$changePercent% vs first recorded session"
+                            else "$changePercent% vs first recorded session",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isUp) Color(0xFF22C55E) else Color(0xFFEF4444)
+                        )
                     }
                 }
             }
@@ -175,179 +389,185 @@ fun StatsScreen(
     }
 }
 
+// ── Weekly Volume Trend ────────────────────────────────────────────────────
 @Composable
-fun StatsMetricRow(
-    title1: String,
-    value1: String,
-    icon1: ImageVector,
-    tint1: Color,
-    title2: String,
-    value2: String,
-    icon2: ImageVector,
-    tint2: Color
-) {
-    Row(
+fun WeeklyTrendCard(weeklyVolumes: List<Pair<String, Double>>) {
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Card(
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Icon(
-                    imageVector = icon1,
-                    contentDescription = null,
-                    tint = tint1,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = title1,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = value1,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Scale, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(20.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text("Weekly Volume Trend", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Total weight moved each week (kg)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Icon(
-                    imageVector = icon2,
-                    contentDescription = null,
-                    tint = tint2,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = title2,
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = value2,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            if (weeklyVolumes.all { it.second == 0.0 }) {
+                Box(modifier = Modifier.fillMaxWidth().height(60.dp), contentAlignment = Alignment.Center) {
+                    Text("Keep logging — weekly trend will appear here", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                }
+            } else {
+                val maxVol = weeklyVolumes.maxOf { it.second }.let { if (it == 0.0) 1.0 else it }
+                weeklyVolumes.forEach { (label, vol) ->
+                    val fraction = (vol / maxVol).toFloat()
+                    val displayVol = if (vol >= 1000)
+                        String.format(Locale.US, "%,.1fk", vol / 1000)
+                    else String.format(Locale.US, "%,.0f", vol)
+
+                    val isThisWeek = label == "This week"
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = 11.sp,
+                            fontWeight = if (isThisWeek) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isThisWeek) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.width(68.dp)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(20.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(fraction)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = listOf(
+                                                MaterialTheme.colorScheme.tertiary,
+                                                MaterialTheme.colorScheme.primary
+                                            )
+                                        )
+                                    )
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "$displayVol kg",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.width(60.dp),
+                            textAlign = TextAlign.End
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+// ── Top Exercises Podium ────────────────────────────────────────────────────
 @Composable
-fun VolumeBarChart(
-    volumes: List<Pair<String, Double>>
-) {
-    if (volumes.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Log workouts to display charts",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        return
-    }
-
-    val maxVal = volumes.maxOf { it.second }
-    val maxVolume = if (maxVal == 0.0) 1.0 else maxVal
-
-    // Trigger bar animation
-    var startAnimate by remember { mutableStateOf(false) }
-    LaunchedEffect(key1 = true) {
-        startAnimate = true
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Bottom
+fun TopExercisesCard(topExercises: List<Pair<String, Int>>) {
+    if (topExercises.isEmpty()) return
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        volumes.forEach { (title, volume) ->
-            // Animated bar height
-            val targetHeight = (volume / maxVolume * 140).dp
-            val animatedHeight by animateDpAsState(
-                targetValue = if (startAnimate) targetHeight else 0.dp,
-                animationSpec = tween(durationMillis = 1000)
-            )
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            ) {
-                // Volume Value on Top
-                val displayVal = if (volume >= 1000) {
-                    String.format(Locale.US, "%.1fk", volume / 1000.0)
-                } else {
-                    String.format(Locale.US, "%.0f", volume)
-                }
-                
-                Text(
-                    text = displayVal,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // The bar box with gradient
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .width(22.dp)
-                        .height(animatedHeight)
-                        .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.secondary
-                                )
-                            )
-                        )
-                )
-                Spacer(modifier = Modifier.height(6.dp))
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFFFACC15).copy(alpha = 0.18f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFFF59E0B), modifier = Modifier.size(20.dp))
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text("Top Exercises", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text("Most logged exercises across all sessions", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Spacer(modifier = Modifier.height(14.dp))
 
-                // Label at bottom
-                Text(
-                    text = title,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+            val maxCount = topExercises.maxOf { it.second }.toFloat().let { if (it == 0f) 1f else it }
+            val medalColors = listOf(Color(0xFFFFD700), Color(0xFFC0C0C0), Color(0xFFCD7F32))
+
+            topExercises.forEachIndexed { index, (name, count) ->
+                val fraction = count / maxCount
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Rank badge
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(
+                                if (index < 3) medalColors[index].copy(alpha = 0.2f)
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "#${index + 1}",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            color = if (index < 3) medalColors[index] else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    // Name + bar
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = name,
+                            fontSize = 12.sp,
+                            fontWeight = if (index == 0) FontWeight.Bold else FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Box(
+                            modifier = Modifier.fillMaxWidth().height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f))
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxHeight().fillMaxWidth(fraction)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(
+                                        if (index < 3) medalColors[index]
+                                        else MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                    )
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "${count}x",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
