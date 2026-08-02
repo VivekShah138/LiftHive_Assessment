@@ -32,9 +32,14 @@ class AddEditWorkoutViewModel @Inject constructor(
     init {
         val route = savedStateHandle.toRoute<Screens.AddEditWorkout>()
         val workoutIdArg = route.workoutId
+        val templateWorkoutIdArg = route.templateWorkoutId
+        
         if (workoutIdArg != null && workoutIdArg != 0L) {
             currentWorkoutId = workoutIdArg
             loadWorkout(workoutIdArg)
+        } else if (templateWorkoutIdArg != null && templateWorkoutIdArg != 0L) {
+            currentWorkoutId = 0L
+            loadWorkoutAsTemplate(templateWorkoutIdArg)
         }
     }
 
@@ -54,6 +59,29 @@ class AddEditWorkoutViewModel @Inject constructor(
                 }
             } else {
                 _state.update { it.copy(isLoading = false, errorMessage = "Workout not found") }
+            }
+        }
+    }
+
+    private fun loadWorkoutAsTemplate(id: Long) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            val workout = getWorkoutByIdUseCase(id)
+            if (workout != null) {
+                val templatedExercises = workout.exercises.map { exercise ->
+                    exercise.copy(id = 0L, workoutId = 0L)
+                }
+                _state.update {
+                    it.copy(
+                        title = workout.title,
+                        date = System.currentTimeMillis(),
+                        notes = workout.notes,
+                        exercises = templatedExercises,
+                        isLoading = false
+                    )
+                }
+            } else {
+                _state.update { it.copy(isLoading = false, errorMessage = "Template workout not found") }
             }
         }
     }
