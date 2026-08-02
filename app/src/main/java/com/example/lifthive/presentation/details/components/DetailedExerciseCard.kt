@@ -21,6 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lifthive.domain.model.Exercise
 
+/**
+ * A detailed card displayed in the Workout Details screen.
+ * Lists the exercise name and renders a row for each set logged with reps and weights.
+ */
 @Composable
 fun DetailedExerciseCard(
     exercise: Exercise,
