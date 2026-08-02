@@ -10,8 +10,8 @@ data class AddEditWorkoutState(
     val isLoading: Boolean = false,
     val isSaved: Boolean = false,
     val errorMessage: String? = null,
-    
-    // Inline/bottom-sheet exercise form fields
+
+
     val exerciseName: String = "",
     val exerciseSets: String = "",
     val exerciseReps: String = "",

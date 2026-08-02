@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+sealed interface StatsEvent
+
 @HiltViewModel
 class StatsViewModel @Inject constructor(
     private val getStatsUseCase: GetStatsUseCase
@@ -24,4 +26,6 @@ class StatsViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = StatsState()
         )
+
+    fun onEvent(event: StatsEvent) {}
 }

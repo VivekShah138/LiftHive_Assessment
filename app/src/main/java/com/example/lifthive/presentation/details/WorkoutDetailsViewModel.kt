@@ -8,12 +8,24 @@ import com.example.lifthive.domain.usecase.DeleteWorkoutUseCase
 import com.example.lifthive.domain.usecase.GetWorkoutByIdUseCase
 import com.example.lifthive.presentation.navigation.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+sealed interface WorkoutDetailsEvent {
+    object DeleteWorkout : WorkoutDetailsEvent
+}
+
+sealed interface WorkoutDetailsUiEffect {
+    object WorkoutDeleted : WorkoutDetailsUiEffect
+    data class ShowError(val message: String) : WorkoutDetailsUiEffect
+}
 
 @HiltViewModel
 class WorkoutDetailsViewModel @Inject constructor(
@@ -24,6 +36,9 @@ class WorkoutDetailsViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(WorkoutDetailsState())
     val state: StateFlow<WorkoutDetailsState> = _state.asStateFlow()
+
+    private val _effect = Channel<WorkoutDetailsUiEffect>(Channel.BUFFERED)
+    val effect: Flow<WorkoutDetailsUiEffect> = _effect.receiveAsFlow()
 
     init {
         val route = savedStateHandle.toRoute<Screens.WorkoutDetails>()
@@ -43,11 +58,15 @@ class WorkoutDetailsViewModel @Inject constructor(
         }
     }
 
-    fun deleteWorkout(onSuccess: () -> Unit) {
-        val workout = _state.value.workout ?: return
-        viewModelScope.launch {
-            deleteWorkoutUseCase(workout)
-            onSuccess()
+    fun onEvent(event: WorkoutDetailsEvent) {
+        when (event) {
+            is WorkoutDetailsEvent.DeleteWorkout -> {
+                val workout = _state.value.workout ?: return
+                viewModelScope.launch {
+                    deleteWorkoutUseCase(workout)
+                    _effect.send(WorkoutDetailsUiEffect.WorkoutDeleted)
+                }
+            }
         }
     }
 }

@@ -60,28 +60,51 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditWorkoutScreen(
+fun AddEditWorkoutScreenRoot(
     navController: NavController,
     viewModel: AddEditWorkoutViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(key1 = state.isSaved) {
-        if (state.isSaved) {
-            Toast.makeText(context, "Workout saved successfully!", Toast.LENGTH_SHORT).show()
-            navController.popBackStack()
-        }
-    }
-
     LaunchedEffect(key1 = state.errorMessage) {
         state.errorMessage?.let { error ->
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-            viewModel.clearError()
+            viewModel.onEvent(AddEditWorkoutEvent.ClearError)
         }
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is AddEditWorkoutUiEffect.WorkoutSaved -> {
+                    Toast.makeText(context, "Workout saved successfully!", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                }
+                is AddEditWorkoutUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    AddEditWorkoutScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBackClick = { navController.popBackStack() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddEditWorkoutScreen(
+    state: AddEditWorkoutState,
+    onEvent: (AddEditWorkoutEvent) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
 
     val dateString = remember(state.date) {
         val sdf = SimpleDateFormat("EEEE, MMMM dd, yyyy", Locale.getDefault())
@@ -101,7 +124,7 @@ fun AddEditWorkoutScreen(
                     set(Calendar.MONTH, month)
                     set(Calendar.DAY_OF_MONTH, dayOfMonth)
                 }
-                viewModel.onDateChange(newCalendar.timeInMillis)
+                onEvent(AddEditWorkoutEvent.DateChanged(newCalendar.timeInMillis))
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
@@ -114,17 +137,17 @@ fun AddEditWorkoutScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (viewModel.state.value.title.isBlank() && state.exercises.isEmpty()) "New Workout" else "Edit Workout",
+                        text = if (state.title.isBlank() && state.exercises.isEmpty()) "New Workout" else "Edit Workout",
                         fontWeight = FontWeight.Bold
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.saveWorkout() }) {
+                    IconButton(onClick = { onEvent(AddEditWorkoutEvent.SaveWorkout) }) {
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = "Save Workout",
@@ -138,7 +161,8 @@ fun AddEditWorkoutScreen(
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = modifier
     ) { innerPadding ->
         if (state.isLoading) {
             Box(
@@ -159,7 +183,7 @@ fun AddEditWorkoutScreen(
                 item {
                     OutlinedTextField(
                         value = state.title,
-                        onValueChange = { viewModel.onTitleChange(it) },
+                        onValueChange = { onEvent(AddEditWorkoutEvent.TitleChanged(it)) },
                         label = { Text("Workout Title (e.g., Chest Day)") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
@@ -231,7 +255,7 @@ fun AddEditWorkoutScreen(
 
                             OutlinedTextField(
                                 value = state.exerciseName,
-                                onValueChange = { viewModel.onExerciseNameChange(it) },
+                                onValueChange = { onEvent(AddEditWorkoutEvent.ExerciseNameChanged(it)) },
                                 label = { Text("Exercise Name (e.g. Bench Press)") },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
@@ -249,7 +273,7 @@ fun AddEditWorkoutScreen(
                             ) {
                                 OutlinedTextField(
                                     value = state.exerciseSets,
-                                    onValueChange = { viewModel.onExerciseSetsChange(it) },
+                                    onValueChange = { onEvent(AddEditWorkoutEvent.ExerciseSetsChanged(it)) },
                                     label = { Text("Sets") },
                                     modifier = Modifier.weight(1f),
                                     singleLine = true,
@@ -261,7 +285,7 @@ fun AddEditWorkoutScreen(
                                 )
                                 OutlinedTextField(
                                     value = state.exerciseReps,
-                                    onValueChange = { viewModel.onExerciseRepsChange(it) },
+                                    onValueChange = { onEvent(AddEditWorkoutEvent.ExerciseRepsChanged(it)) },
                                     label = { Text("Reps") },
                                     modifier = Modifier.weight(1f),
                                     singleLine = true,
@@ -273,7 +297,7 @@ fun AddEditWorkoutScreen(
                                 )
                                 OutlinedTextField(
                                     value = state.exerciseWeight,
-                                    onValueChange = { viewModel.onExerciseWeightChange(it) },
+                                    onValueChange = { onEvent(AddEditWorkoutEvent.ExerciseWeightChanged(it)) },
                                     label = { Text("Wt (kg)", maxLines = 1) },
                                     modifier = Modifier.weight(1.5f),
                                     singleLine = true,
@@ -287,7 +311,7 @@ fun AddEditWorkoutScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Button(
-                                onClick = { viewModel.addExercise() },
+                                onClick = { onEvent(AddEditWorkoutEvent.AddExercise) },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.secondary,
@@ -334,7 +358,7 @@ fun AddEditWorkoutScreen(
                         AddedExerciseCard(
                             exercise = exercise,
                             index = index,
-                            onDelete = { viewModel.removeExercise(index) }
+                            onDelete = { onEvent(AddEditWorkoutEvent.RemoveExercise(index)) }
                         )
                     }
                 }
@@ -342,7 +366,7 @@ fun AddEditWorkoutScreen(
                 item {
                     OutlinedTextField(
                         value = state.notes,
-                        onValueChange = { viewModel.onNotesChange(it) },
+                        onValueChange = { onEvent(AddEditWorkoutEvent.NotesChanged(it)) },
                         label = { Text("Session Notes / Reflections") },
                         modifier = Modifier
                             .fillMaxWidth()

@@ -49,20 +49,34 @@ import com.example.lifthive.presentation.stats.components.WeeklyTrendCard
 import com.example.lifthive.presentation.stats.components.WorkoutContributionGraph
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StatsScreen(
+fun StatsScreenRoot(
     navController: NavController,
     viewModel: StatsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
+    StatsScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBackClick = { navController.popBackStack() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StatsScreen(
+    state: StatsState,
+    onEvent: (StatsEvent) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Analytics Dashboard", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -71,7 +85,8 @@ fun StatsScreen(
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = modifier
     ) { innerPadding ->
         if (state.isLoading || state.stats == null) {
             Box(

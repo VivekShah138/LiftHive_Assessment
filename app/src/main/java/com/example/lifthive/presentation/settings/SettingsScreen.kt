@@ -1,16 +1,45 @@
 package com.example.lifthive.presentation.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,18 +51,47 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.lifthive.presentation.MainViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(
+fun SettingsScreenRoot(
     navController: NavController,
     mainViewModel: MainViewModel,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is SettingsUiEffect.DummyDataPopulated -> {
+                    Toast.makeText(context, "Demo data populated successfully!", Toast.LENGTH_SHORT).show()
+                }
+                is SettingsUiEffect.DataCleared -> {
+                    Toast.makeText(context, "All data wiped clean.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    SettingsScreen(
+        isDarkTheme = mainViewModel.isDarkTheme.value,
+        onThemeToggle = { mainViewModel.toggleTheme() },
+        onEvent = viewModel::onEvent,
+        onBackClick = { navController.popBackStack() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    isDarkTheme: Boolean,
+    onThemeToggle: () -> Unit,
+    onEvent: (SettingsEvent) -> Unit,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     var showResetDialog by remember { mutableStateOf(false) }
     var showClearDialog by remember { mutableStateOf(false) }
 
-    // Dialog: Reset mock data confirmation
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
@@ -43,9 +101,7 @@ fun SettingsScreen(
                 TextButton(
                     onClick = {
                         showResetDialog = false
-                        viewModel.populateDummyData {
-                            Toast.makeText(context, "Demo data populated successfully!", Toast.LENGTH_SHORT).show()
-                        }
+                        onEvent(SettingsEvent.PopulateDummyData)
                     }
                 ) {
                     Text("Proceed", color = MaterialTheme.colorScheme.primary)
@@ -59,7 +115,6 @@ fun SettingsScreen(
         )
     }
 
-    // Dialog: Clear all data confirmation
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
@@ -69,9 +124,7 @@ fun SettingsScreen(
                 TextButton(
                     onClick = {
                         showClearDialog = false
-                        viewModel.clearAllData {
-                            Toast.makeText(context, "All data wiped clean.", Toast.LENGTH_SHORT).show()
-                        }
+                        onEvent(SettingsEvent.ClearAllData)
                     }
                 ) {
                     Text("Erase All", color = Color(0xFFEF5350))
@@ -90,7 +143,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = { Text("App Preferences", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
@@ -99,7 +152,8 @@ fun SettingsScreen(
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = modifier
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -108,7 +162,6 @@ fun SettingsScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Theme Section
             item {
                 Text(
                     text = "Appearance",
@@ -153,8 +206,8 @@ fun SettingsScreen(
                             }
                         }
                         Switch(
-                            checked = mainViewModel.isDarkTheme.value,
-                            onCheckedChange = { mainViewModel.toggleTheme() },
+                            checked = isDarkTheme,
+                            onCheckedChange = { onThemeToggle() },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = MaterialTheme.colorScheme.primary,
                                 checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
@@ -164,7 +217,6 @@ fun SettingsScreen(
                 }
             }
 
-            // Data Administration Section
             item {
                 Text(
                     text = "Data Management",
@@ -229,7 +281,6 @@ fun SettingsScreen(
                 }
             }
 
-            // About Section
             item {
                 Text(
                     text = "About",

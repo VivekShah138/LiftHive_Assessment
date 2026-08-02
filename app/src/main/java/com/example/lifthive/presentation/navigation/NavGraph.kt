@@ -6,12 +6,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.lifthive.presentation.MainViewModel
-import com.example.lifthive.presentation.add_edit.AddEditWorkoutScreen
-import com.example.lifthive.presentation.details.WorkoutDetailsScreen
-import com.example.lifthive.presentation.home.HomeScreen
-import com.example.lifthive.presentation.settings.SettingsScreen
+import com.example.lifthive.presentation.add_edit.AddEditWorkoutScreenRoot
+import com.example.lifthive.presentation.details.WorkoutDetailsScreenRoot
+import com.example.lifthive.presentation.home.HomeScreenRoot
+import com.example.lifthive.presentation.settings.SettingsScreenRoot
 import com.example.lifthive.presentation.splash.SplashScreen
-import com.example.lifthive.presentation.stats.StatsScreen
+import com.example.lifthive.presentation.stats.StatsScreenRoot
 
 @Composable
 fun SetupNavGraph(
@@ -27,24 +27,24 @@ fun SetupNavGraph(
         }
         
         composable<Screens.Home> {
-            HomeScreen(navController = navController, mainViewModel = mainViewModel)
+            HomeScreenRoot(navController = navController, mainViewModel = mainViewModel)
         }
         
         composable<Screens.AddEditWorkout> {
-            AddEditWorkoutScreen(navController = navController)
+            AddEditWorkoutScreenRoot(navController = navController)
         }
         
         composable<Screens.WorkoutDetails> { backStackEntry ->
             val route = backStackEntry.toRoute<Screens.WorkoutDetails>()
-            WorkoutDetailsScreen(navController = navController, workoutId = route.workoutId)
+            WorkoutDetailsScreenRoot(navController = navController, workoutId = route.workoutId)
         }
         
         composable<Screens.Stats> {
-            StatsScreen(navController = navController)
+            StatsScreenRoot(navController = navController)
         }
         
         composable<Screens.Settings> {
-            SettingsScreen(navController = navController, mainViewModel = mainViewModel)
+            SettingsScreenRoot(navController = navController, mainViewModel = mainViewModel)
         }
     }
 }

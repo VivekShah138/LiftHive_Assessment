@@ -58,16 +58,14 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WorkoutDetailsScreen(
+fun WorkoutDetailsScreenRoot(
     navController: NavController,
     workoutId: Long,
     viewModel: WorkoutDetailsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
-    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = state.error) {
         state.error?.let { err ->
@@ -75,6 +73,45 @@ fun WorkoutDetailsScreen(
             navController.popBackStack()
         }
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is WorkoutDetailsUiEffect.WorkoutDeleted -> {
+                    Toast.makeText(context, "Workout deleted", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                }
+                is WorkoutDetailsUiEffect.ShowError -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    WorkoutDetailsScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBackClick = { navController.popBackStack() },
+        onNavigateToTemplate = { id ->
+            navController.navigate(Screens.AddEditWorkout(templateWorkoutId = id))
+        },
+        onNavigateToEdit = { id ->
+            navController.navigate(Screens.AddEditWorkout(workoutId = id))
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WorkoutDetailsScreen(
+    state: WorkoutDetailsState,
+    onEvent: (WorkoutDetailsEvent) -> Unit,
+    onBackClick: () -> Unit,
+    onNavigateToTemplate: (Long) -> Unit,
+    onNavigateToEdit: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -84,10 +121,8 @@ fun WorkoutDetailsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.deleteWorkout {
-                            Toast.makeText(context, "Workout deleted", Toast.LENGTH_SHORT).show()
-                            navController.popBackStack()
-                        }
+                        showDeleteDialog = false
+                        onEvent(WorkoutDetailsEvent.DeleteWorkout)
                     }
                 ) {
                     Text("Delete", color = Color(0xFFEF5350))
@@ -106,24 +141,20 @@ fun WorkoutDetailsScreen(
             TopAppBar(
                 title = { Text(state.workout?.title ?: "Workout Details", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = onBackClick) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     state.workout?.let { workout ->
-                        IconButton(onClick = {
-                            navController.navigate(Screens.AddEditWorkout(templateWorkoutId = workout.id))
-                        }) {
+                        IconButton(onClick = { onNavigateToTemplate(workout.id) }) {
                             Icon(
                                 imageVector = Icons.Default.ContentCopy,
                                 contentDescription = "Use as Template",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        IconButton(onClick = {
-                            navController.navigate(Screens.AddEditWorkout(workoutId = workout.id))
-                        }) {
+                        IconButton(onClick = { onNavigateToEdit(workout.id) }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Workout", tint = MaterialTheme.colorScheme.secondary)
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
@@ -136,7 +167,8 @@ fun WorkoutDetailsScreen(
                 )
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = modifier
     ) { innerPadding ->
         if (state.isLoading || state.workout == null) {
             Box(

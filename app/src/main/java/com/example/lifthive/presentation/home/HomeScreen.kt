@@ -73,14 +73,37 @@ import com.example.lifthive.presentation.home.components.WorkoutItemCard
 import com.example.lifthive.presentation.navigation.Screens
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
+fun HomeScreenRoot(
     navController: NavController,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+
+    HomeScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateToStats = { navController.navigate(Screens.Stats) },
+        onNavigateToSettings = { navController.navigate(Screens.Settings) },
+        onNavigateToAddWorkout = { navController.navigate(Screens.AddEditWorkout()) },
+        onNavigateToWorkoutDetails = { id -> navController.navigate(Screens.WorkoutDetails(workoutId = id)) },
+        onNavigateToTemplateWorkout = { id -> navController.navigate(Screens.AddEditWorkout(templateWorkoutId = id)) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreen(
+    state: HomeState,
+    onEvent: (HomeEvent) -> Unit,
+    onNavigateToStats: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onNavigateToAddWorkout: () -> Unit,
+    onNavigateToWorkoutDetails: (Long) -> Unit,
+    onNavigateToTemplateWorkout: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -114,14 +137,14 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Screens.Stats) }) {
+                    IconButton(onClick = onNavigateToStats) {
                         Icon(
                             imageVector = Icons.Default.Analytics,
                             contentDescription = "Statistics",
                             tint = MaterialTheme.colorScheme.secondary
                         )
                     }
-                    IconButton(onClick = { navController.navigate(Screens.Settings) }) {
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
@@ -136,7 +159,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Screens.AddEditWorkout()) },
+                onClick = onNavigateToAddWorkout,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
@@ -148,7 +171,8 @@ fun HomeScreen(
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = modifier
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -175,14 +199,14 @@ fun HomeScreen(
                     state.stats?.let { stats ->
                         DashboardSummaryCard(
                             stats = stats,
-                            onClick = { navController.navigate(Screens.Stats) }
+                            onClick = onNavigateToStats
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
                     SearchBar(
                         query = state.searchQuery,
-                        onQueryChange = { viewModel.onSearchQueryChange(it) }
+                        onQueryChange = { onEvent(HomeEvent.SearchQueryChanged(it)) }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -219,7 +243,7 @@ fun HomeScreen(
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = { dismissValue ->
                                 if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                    viewModel.deleteWorkout(workout)
+                                    onEvent(HomeEvent.DeleteWorkout(workout))
                                     scope.launch {
                                         val result = snackbarHostState.showSnackbar(
                                             message = "Workout deleted",
@@ -227,7 +251,7 @@ fun HomeScreen(
                                             duration = SnackbarDuration.Short
                                         )
                                         if (result == SnackbarResult.ActionPerformed) {
-                                            viewModel.undoDelete()
+                                            onEvent(HomeEvent.UndoDelete)
                                         }
                                     }
                                     true
@@ -264,12 +288,8 @@ fun HomeScreen(
                             content = {
                                 WorkoutItemCard(
                                     workout = workout,
-                                    onClick = {
-                                        navController.navigate(Screens.WorkoutDetails(workoutId = workout.id))
-                                    },
-                                    onUseAsTemplate = {
-                                        navController.navigate(Screens.AddEditWorkout(templateWorkoutId = workout.id))
-                                    }
+                                    onClick = { onNavigateToWorkoutDetails(workout.id) },
+                                    onUseAsTemplate = { onNavigateToTemplateWorkout(workout.id) }
                                 )
                             }
                         )

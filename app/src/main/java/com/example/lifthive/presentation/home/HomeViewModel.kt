@@ -16,6 +16,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+sealed interface HomeEvent {
+    data class SearchQueryChanged(val query: String) : HomeEvent
+    data class DeleteWorkout(val workout: Workout) : HomeEvent
+    object UndoDelete : HomeEvent
+}
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getWorkoutsUseCase: GetWorkoutsUseCase,
@@ -25,7 +31,6 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery
 
     private val _recentlyDeletedWorkout = MutableStateFlow<Workout?>(null)
 
@@ -54,22 +59,24 @@ class HomeViewModel @Inject constructor(
         initialValue = HomeState()
     )
 
-    fun onSearchQueryChange(query: String) {
-        _searchQuery.value = query
-    }
-
-    fun deleteWorkout(workout: Workout) {
-        viewModelScope.launch {
-            _recentlyDeletedWorkout.value = workout
-            deleteWorkoutUseCase(workout)
-        }
-    }
-
-    fun undoDelete() {
-        val deleted = _recentlyDeletedWorkout.value ?: return
-        viewModelScope.launch {
-            saveWorkoutUseCase(deleted)
-            _recentlyDeletedWorkout.value = null
+    fun onEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.SearchQueryChanged -> {
+                _searchQuery.value = event.query
+            }
+            is HomeEvent.DeleteWorkout -> {
+                viewModelScope.launch {
+                    _recentlyDeletedWorkout.value = event.workout
+                    deleteWorkoutUseCase(event.workout)
+                }
+            }
+            is HomeEvent.UndoDelete -> {
+                val deleted = _recentlyDeletedWorkout.value ?: return
+                viewModelScope.launch {
+                    saveWorkoutUseCase(deleted)
+                    _recentlyDeletedWorkout.value = null
+                }
+            }
         }
     }
 }
