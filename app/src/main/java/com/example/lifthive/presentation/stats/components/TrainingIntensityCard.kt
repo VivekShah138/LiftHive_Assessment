@@ -46,10 +46,6 @@ import androidx.compose.ui.unit.sp
 import java.util.Locale
 import kotlin.math.roundToInt
 
-/**
- * A card displaying the training intensity over the last few workouts.
- * Features an auto-scrolled horizontal chart representing session volume with custom canvas guides.
- */
 @Composable
 fun TrainingIntensityCard(
     volumes: List<Pair<String, Double>>,

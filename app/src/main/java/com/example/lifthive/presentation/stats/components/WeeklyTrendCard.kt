@@ -33,10 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
 
-/**
- * A card displaying the weekly volume progression over the last few weeks.
- * Features a vertically scrollable list of progress bars that show total kg moved per week.
- */
+
 @Composable
 fun WeeklyTrendCard(
     weeklyVolumes: List<Pair<String, Double>>,

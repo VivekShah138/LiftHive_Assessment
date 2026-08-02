@@ -43,11 +43,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-/**
- * A premium summary hero card displayed on the Home feed.
- * Highlights current streaks, time-based greetings, daily training progress,
- * and standard metrics (total sessions, volume, etc.) inside a gradient container.
- */
 @Composable
 fun DashboardSummaryCard(
     stats: WorkoutStats,
@@ -218,45 +213,4 @@ fun DashboardSummaryCard(
     }
 }
 
-/**
- * A mini key-value display block inside the DashboardSummaryCard.
- * Combines an icon, value indicator, and short label.
- */
-@Composable
-private fun HomeMiniStat(
-    icon: ImageVector,
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White.copy(alpha = 0.18f))
-            .padding(vertical = 10.dp, horizontal = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(16.dp)
-        )
-        Text(
-            text = value,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Black,
-            color = Color.White,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = label,
-            fontSize = 9.sp,
-            color = Color.White.copy(alpha = 0.75f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
+

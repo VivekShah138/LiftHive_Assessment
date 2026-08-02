@@ -25,27 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.lifthive.presentation.stats.utils.ContributionDay
+import com.example.lifthive.presentation.stats.utils.ContributionMonth
+import com.example.lifthive.presentation.stats.utils.ContributionWeek
 import java.util.Calendar
 import java.util.Locale
 
-data class ContributionDay(
-    val timeMillis: Long,
-    val isCompleted: Boolean
-)
-
-data class ContributionWeek(
-    val days: List<ContributionDay>
-)
-
-data class ContributionMonth(
-    val name: String,
-    val weeks: List<ContributionWeek>
-)
-
-/**
- * A GitHub-style heat map card showing workout consistency over the last 12 weeks.
- * Displays daily activity blocks grouped by week and month.
- */
 @Composable
 fun WorkoutContributionGraph(
     workoutDates: List<Long>,
