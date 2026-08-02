@@ -84,9 +84,18 @@ fun WorkoutDetailsScreen(
                 actions = {
                     state.workout?.let { workout ->
                         IconButton(onClick = {
+                            navController.navigate(Screens.AddEditWorkout(templateWorkoutId = workout.id))
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.ContentCopy,
+                                contentDescription = "Use as Template",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        IconButton(onClick = {
                             navController.navigate(Screens.AddEditWorkout(workoutId = workout.id))
                         }) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Workout", tint = MaterialTheme.colorScheme.primary)
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Workout", tint = MaterialTheme.colorScheme.secondary)
                         }
                         IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Workout", tint = Color(0xFFEF5350))
