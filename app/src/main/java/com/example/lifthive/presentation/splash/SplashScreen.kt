@@ -1,0 +1,97 @@
+package com.example.lifthive.presentation.splash
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.lifthive.presentation.navigation.Screen
+import kotlinx.coroutines.delay
+
+@Composable
+fun SplashScreen(navController: NavController) {
+    val scale = remember { Animatable(0f) }
+    val alpha = remember { Animatable(0f) }
+
+    LaunchedEffect(key1 = true) {
+        // Run animations concurrently
+        scale.animateTo(
+            targetValue = 1.2f,
+            animationSpec = tween(durationMillis = 800)
+        )
+        // Bounce back slightly
+        scale.animateTo(
+            targetValue = 1.0f,
+            animationSpec = tween(durationMillis = 200)
+        )
+    }
+
+    LaunchedEffect(key1 = true) {
+        alpha.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 1000)
+        )
+        // Delay to let animation sit, then navigate
+        delay(1200)
+        navController.navigate(Screen.Home.route) {
+            popUpTo(Screen.Splash.route) { inclusive = true }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.FitnessCenter,
+                contentDescription = "LiftHive Logo",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .size(120.dp)
+                    .scale(scale.value)
+                    .alpha(alpha.value)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "LiftHive",
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.alpha(alpha.value)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "UNLEASH YOUR POTENTIAL",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.alpha(alpha.value)
+            )
+        }
+    }
+}
