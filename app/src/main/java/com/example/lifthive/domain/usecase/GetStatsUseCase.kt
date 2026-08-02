@@ -5,6 +5,9 @@ import com.example.lifthive.domain.model.WorkoutStats
 import com.example.lifthive.domain.repository.WorkoutRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 class GetStatsUseCase @Inject constructor(
@@ -35,8 +38,8 @@ class GetStatsUseCase @Inject constructor(
             val last6Workouts = workouts.take(6).reversed()
             val lastWorkoutsVolume = last6Workouts.map { workout ->
                 val volume = workout.exercises.sumOf { it.sets * it.reps * it.weight }
-                // Truncate name if too long for chart label
-                val title = if (workout.title.length > 10) workout.title.take(8) + ".." else workout.title
+                val sdf = SimpleDateFormat("MMM d", Locale.getDefault())
+                val title = sdf.format(Date(workout.date))
                 Pair(title, volume)
             }
             
