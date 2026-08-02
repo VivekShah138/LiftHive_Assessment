@@ -21,8 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import com.example.lifthive.domain.model.Exercise
-import com.example.lifthive.presentation.navigation.Screen
+import com.example.lifthive.presentation.navigation.AddEditWorkoutRoute
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -77,13 +78,13 @@ fun WorkoutDetailsScreen(
                 title = { Text(state.workout?.title ?: "Workout Details", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     state.workout?.let { workout ->
                         IconButton(onClick = {
-                            navController.navigate(Screen.AddEditWorkout.passWorkoutId(workout.id))
+                            navController.navigate(AddEditWorkoutRoute(workoutId = workout.id))
                         }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Workout", tint = MaterialTheme.colorScheme.primary)
                         }
@@ -229,7 +230,7 @@ fun DetailedExerciseCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             Spacer(modifier = Modifier.height(8.dp))
 
             // Set-by-Set Breakdown

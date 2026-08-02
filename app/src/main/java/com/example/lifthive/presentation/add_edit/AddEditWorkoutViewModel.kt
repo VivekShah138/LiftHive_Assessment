@@ -3,10 +3,12 @@ package com.example.lifthive.presentation.add_edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
 import com.example.lifthive.domain.model.Exercise
 import com.example.lifthive.domain.model.Workout
 import com.example.lifthive.domain.usecase.GetWorkoutByIdUseCase
 import com.example.lifthive.domain.usecase.SaveWorkoutUseCase
+import com.example.lifthive.presentation.navigation.AddEditWorkoutRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,10 +30,8 @@ class AddEditWorkoutViewModel @Inject constructor(
     private var currentWorkoutId: Long = 0L
 
     init {
-        // Compose Navigation may pass arguments as String under the hood for query params
-        val workoutIdArg = savedStateHandle.get<String>("workoutId")?.toLongOrNull() 
-            ?: savedStateHandle.get<Long>("workoutId")
-            
+        val route = savedStateHandle.toRoute<AddEditWorkoutRoute>()
+        val workoutIdArg = route.workoutId
         if (workoutIdArg != null && workoutIdArg != 0L) {
             currentWorkoutId = workoutIdArg
             loadWorkout(workoutIdArg)

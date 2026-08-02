@@ -2,10 +2,9 @@ package com.example.lifthive.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
+import androidx.navigation.toRoute
 import com.example.lifthive.presentation.MainViewModel
 import com.example.lifthive.presentation.add_edit.AddEditWorkoutScreen
 import com.example.lifthive.presentation.details.WorkoutDetailsScreen
@@ -21,46 +20,30 @@ fun SetupNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route
+        startDestination = SplashRoute
     ) {
-        composable(route = Screen.Splash.route) {
+        composable<SplashRoute> {
             SplashScreen(navController = navController)
         }
         
-        composable(route = Screen.Home.route) {
+        composable<HomeRoute> {
             HomeScreen(navController = navController, mainViewModel = mainViewModel)
         }
         
-        composable(
-            route = Screen.AddEditWorkout.route,
-            arguments = listOf(
-                navArgument("workoutId") {
-                    type = NavType.StringType
-                    defaultValue = "0"
-                    nullable = true
-                }
-            )
-        ) {
+        composable<AddEditWorkoutRoute> {
             AddEditWorkoutScreen(navController = navController)
         }
         
-        composable(
-            route = Screen.WorkoutDetails.route,
-            arguments = listOf(
-                navArgument("workoutId") {
-                    type = NavType.LongType
-                }
-            )
-        ) { backStackEntry ->
-            val workoutId = backStackEntry.arguments?.getLong("workoutId") ?: 0L
-            WorkoutDetailsScreen(navController = navController, workoutId = workoutId)
+        composable<WorkoutDetailsRoute> { backStackEntry ->
+            val route = backStackEntry.toRoute<WorkoutDetailsRoute>()
+            WorkoutDetailsScreen(navController = navController, workoutId = route.workoutId)
         }
         
-        composable(route = Screen.Stats.route) {
+        composable<StatsRoute> {
             StatsScreen(navController = navController)
         }
         
-        composable(route = Screen.Settings.route) {
+        composable<SettingsRoute> {
             SettingsScreen(navController = navController, mainViewModel = mainViewModel)
         }
     }

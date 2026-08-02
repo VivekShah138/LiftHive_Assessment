@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Info
@@ -91,7 +91,7 @@ fun SettingsScreen(
                 title = { Text("App Preferences", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -263,7 +263,7 @@ fun SettingsScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                        Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         
                         Text(
                             text = "Version: 1.0.0 (Clean Architecture MVP)",

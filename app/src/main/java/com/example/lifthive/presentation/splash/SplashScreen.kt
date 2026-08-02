@@ -25,7 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.lifthive.presentation.navigation.Screen
+import com.example.lifthive.presentation.navigation.HomeRoute
+import com.example.lifthive.presentation.navigation.SplashRoute
 import kotlinx.coroutines.delay
 
 @Composable
@@ -53,8 +54,8 @@ fun SplashScreen(navController: NavController) {
         )
         // Delay to let animation sit, then navigate
         delay(1200)
-        navController.navigate(Screen.Home.route) {
-            popUpTo(Screen.Splash.route) { inclusive = true }
+        navController.navigate(HomeRoute) {
+            popUpTo(SplashRoute) { inclusive = true }
         }
     }
 

@@ -25,7 +25,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.lifthive.domain.model.Workout
 import com.example.lifthive.presentation.MainViewModel
-import com.example.lifthive.presentation.navigation.Screen
+import com.example.lifthive.presentation.navigation.AddEditWorkoutRoute
+import com.example.lifthive.presentation.navigation.HomeRoute
+import com.example.lifthive.presentation.navigation.SettingsRoute
+import com.example.lifthive.presentation.navigation.StatsRoute
+import com.example.lifthive.presentation.navigation.WorkoutDetailsRoute
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -63,14 +67,14 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Screen.Stats.route) }) {
+                    IconButton(onClick = { navController.navigate(StatsRoute) }) {
                         Icon(
                             imageVector = Icons.Default.Analytics,
                             contentDescription = "Statistics",
                             tint = MaterialTheme.colorScheme.secondary
                         )
                     }
-                    IconButton(onClick = { navController.navigate(Screen.Settings.route) }) {
+                    IconButton(onClick = { navController.navigate(SettingsRoute) }) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
@@ -85,7 +89,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Screen.AddEditWorkout.route) },
+                onClick = { navController.navigate(AddEditWorkoutRoute()) },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
@@ -202,7 +206,7 @@ fun HomeScreen(
                                 WorkoutItemCard(
                                     workout = workout,
                                     onClick = {
-                                        navController.navigate(Screen.WorkoutDetails.passWorkoutId(workout.id))
+                                        navController.navigate(WorkoutDetailsRoute(workoutId = workout.id))
                                     }
                                 )
                             }
