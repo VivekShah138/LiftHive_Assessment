@@ -96,7 +96,7 @@ fun SettingsScreen(
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
             title = { Text("Load Demo Data") },
-            text = { Text("This will erase current logs and populate database with a standard 3-day split (Push, Pull, Legs) for testing. Proceed?") },
+            text = { Text("This will erase current logs and populate the database with a detailed 4-week training history for testing. Proceed?") },
             confirmButton = {
                 TextButton(
                     onClick = {
