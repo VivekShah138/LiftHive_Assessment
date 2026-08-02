@@ -270,9 +270,15 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                 // Trend line drawn on a Canvas overlay
                 val barHeightFraction = volumes.map { (it.second / maxVal).toFloat() }
 
-                // Horizontally scrollable bar chart
+                // Horizontally scrollable bar chart — auto-snaps to latest (rightmost) session
                 val barWidth = 52.dp
                 val chartWidth = barWidth * volumes.size + 6.dp * (volumes.size - 1)
+                val scrollState = rememberScrollState()
+
+                // Scroll to the rightmost end after first composition so latest session is visible
+                LaunchedEffect(volumes.size) {
+                    scrollState.animateScrollTo(scrollState.maxValue)
+                }
 
                 Box(
                     modifier = Modifier
@@ -298,7 +304,7 @@ fun TrainingIntensityCard(volumes: List<Pair<String, Double>>) {
                     Row(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .horizontalScroll(rememberScrollState())
+                            .horizontalScroll(scrollState)
                             .width(chartWidth),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.Bottom
@@ -435,24 +441,24 @@ fun WeeklyTrendCard(weeklyVolumes: List<Pair<String, Double>>) {
                 }
             } else {
                 val maxVol = weeklyVolumes.maxOf { it.second }.let { if (it == 0.0) 1.0 else it }
-                // Each week row is 280dp wide in a scrollable strip
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                // Show only last 3 weeks (most recent 3), latest at bottom
+                val displayWeeks = weeklyVolumes.takeLast(3)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    weeklyVolumes.forEach { (label, vol) ->
-                        val fraction = (vol / maxVol).toFloat()
+                    displayWeeks.forEach { (label, vol) ->
+                        val fraction = (vol / maxVol).toFloat().coerceIn(0f, 1f)
                         val displayVol = if (vol >= 1000)
                             String.format(Locale.US, "%,.1fk", vol / 1000)
                         else String.format(Locale.US, "%,.0f", vol)
                         val isThisWeek = label == "This week"
 
                         Column(
-                            modifier = Modifier.width(160.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
+                            // Label + value on same row
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -460,39 +466,49 @@ fun WeeklyTrendCard(weeklyVolumes: List<Pair<String, Double>>) {
                             ) {
                                 Text(
                                     text = label,
-                                    fontSize = 11.sp,
+                                    fontSize = 12.sp,
                                     fontWeight = if (isThisWeek) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isThisWeek) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = if (isThisWeek) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
-                                    text = "$displayVol kg",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isThisWeek) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    text = if (vol == 0.0) "Rest week" else "$displayVol kg",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isThisWeek) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurface
                                 )
                             }
-                            // Progress bar
+                            // Horizontal progress bar
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(10.dp)
-                                    .clip(RoundedCornerShape(5.dp))
+                                    .height(12.dp)
+                                    .clip(RoundedCornerShape(6.dp))
                                     .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .fillMaxWidth(fraction)
-                                        .clip(RoundedCornerShape(5.dp))
-                                        .background(
-                                            brush = Brush.horizontalGradient(
-                                                colors = if (isThisWeek)
-                                                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
-                                                else
-                                                    listOf(MaterialTheme.colorScheme.tertiary, MaterialTheme.colorScheme.primary)
+                                if (fraction > 0f) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .fillMaxWidth(fraction)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(
+                                                brush = Brush.horizontalGradient(
+                                                    colors = if (isThisWeek)
+                                                        listOf(
+                                                            MaterialTheme.colorScheme.primary,
+                                                            MaterialTheme.colorScheme.secondary
+                                                        )
+                                                    else
+                                                        listOf(
+                                                            MaterialTheme.colorScheme.tertiary,
+                                                            MaterialTheme.colorScheme.primary
+                                                        )
+                                                )
                                             )
-                                        )
-                                )
+                                    )
+                                }
                             }
                         }
                     }
