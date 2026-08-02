@@ -1,26 +1,26 @@
 package com.example.lifthive.di
 
-import android.app.Application
+import android.content.Context
 import androidx.room.Room
 import com.example.lifthive.data.local.WorkoutDao
 import com.example.lifthive.data.local.WorkoutDatabase
-import com.example.lifthive.data.repository.WorkoutRepositoryImpl
-import com.example.lifthive.domain.repository.WorkoutRepository
+import com.example.lifthive.data.preferences.PreferencesDataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DatabaseModule {
+object DataModule {
 
     @Provides
     @Singleton
-    fun provideWorkoutDatabase(app: Application): WorkoutDatabase {
+    fun provideWorkoutDatabase(@ApplicationContext context: Context): WorkoutDatabase {
         return Room.databaseBuilder(
-            app,
+            context,
             WorkoutDatabase::class.java,
             WorkoutDatabase.DATABASE_NAME
         ).build()
@@ -34,7 +34,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideWorkoutRepository(dao: WorkoutDao): WorkoutRepository {
-        return WorkoutRepositoryImpl(dao)
+    fun providePreferencesDataStore(@ApplicationContext context: Context): PreferencesDataStore {
+        return PreferencesDataStore(context)
     }
 }

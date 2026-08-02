@@ -58,6 +58,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // DataStore Preferences
+    implementation(libs.androidx.datastore.preferences)
+
     // Dagger Hilt DI
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
