@@ -4,5 +4,6 @@ data class WorkoutStats(
     val totalWorkouts: Int,
     val totalWeightLifted: Double,
     val mostFrequentExercise: String,
-    val lastWorkoutsVolume: List<Pair<String, Double>> // Represents (Workout Title, Total Volume in kg/lbs)
+    val lastWorkoutsVolume: List<Pair<String, Double>>,
+    val workoutDates: List<Long> = emptyList()
 )

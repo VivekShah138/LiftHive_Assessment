@@ -40,11 +40,14 @@ class GetStatsUseCase @Inject constructor(
                 Pair(title, volume)
             }
             
+            val workoutDates = workouts.map { it.date }
+
             WorkoutStats(
                 totalWorkouts = totalWorkouts,
                 totalWeightLifted = totalWeightLifted,
                 mostFrequentExercise = mostFrequentExercise,
-                lastWorkoutsVolume = lastWorkoutsVolume
+                lastWorkoutsVolume = lastWorkoutsVolume,
+                workoutDates = workoutDates
             )
         }
     }
