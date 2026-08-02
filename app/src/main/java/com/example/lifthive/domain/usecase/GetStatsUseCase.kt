@@ -35,13 +35,11 @@ class GetStatsUseCase @Inject constructor(
 
             val mostFrequentExercise = exerciseCounts.maxByOrNull { it.value }?.key ?: "None"
 
-            // Top 5 exercises by frequency
             val topExercises = exerciseCounts.entries
                 .sortedByDescending { it.value }
                 .take(5)
                 .map { Pair(it.key, it.value) }
 
-            // Last 6 sessions volume with date labels (oldest → newest)
             val last6Workouts = workouts.take(6).reversed()
             val lastWorkoutsVolume = last6Workouts.map { workout ->
                 val volume = workout.exercises.sumOf { it.sets * it.reps * it.weight }
@@ -49,7 +47,6 @@ class GetStatsUseCase @Inject constructor(
                 Pair(title, volume)
             }
 
-            // All-time best single-session PR
             var bestSessionVolume = 0.0
             var bestSessionLabel = "—"
             workouts.forEach { workout ->
@@ -60,31 +57,25 @@ class GetStatsUseCase @Inject constructor(
                 }
             }
 
-            // Average volume per session
             val avgVolumePerSession = if (totalWorkouts > 0) totalWeightLifted / totalWorkouts else 0.0
 
-            // Workout dates as Set<"yyyy-MM-dd">
             val workoutDates = workouts.map { it.date }
             val workoutDayKeys = workoutDates.map { sdfDayKey.format(Date(it)) }.toSet()
 
-            // Current streak (consecutive days ending today or yesterday)
             var currentStreak = 0
             val cal = Calendar.getInstance()
             val todayKey = sdfDayKey.format(cal.time)
-            // Start from today; if today has no workout, allow yesterday as start
             val startKey = if (workoutDayKeys.contains(todayKey)) todayKey
             else {
                 cal.add(Calendar.DAY_OF_YEAR, -1)
                 sdfDayKey.format(cal.time)
             }
-            // Reset cal to startKey date
             cal.time = sdfDayKey.parse(startKey) ?: cal.time
             while (workoutDayKeys.contains(sdfDayKey.format(cal.time))) {
                 currentStreak++
                 cal.add(Calendar.DAY_OF_YEAR, -1)
             }
 
-            // Longest streak (all-time)
             val sortedDayKeys = workoutDayKeys.mapNotNull { sdfDayKey.parse(it) }
                 .map { it.time }
                 .sorted()
@@ -106,10 +97,8 @@ class GetStatsUseCase @Inject constructor(
                 prevCal = Calendar.getInstance().apply { timeInMillis = millis }
             }
 
-            // Weekly volumes for the last 4 complete weeks
             val weeklyVolumes = mutableListOf<Pair<String, Double>>()
             val weekCal = Calendar.getInstance()
-            // Snap to start of this week (Sunday)
             weekCal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
             weekCal.set(Calendar.HOUR_OF_DAY, 0)
             weekCal.set(Calendar.MINUTE, 0)
@@ -132,7 +121,7 @@ class GetStatsUseCase @Inject constructor(
                     val endFmt   = SimpleDateFormat("MMM d", Locale.getDefault())
                     val endDay   = Calendar.getInstance().apply {
                         timeInMillis = weekEnd.timeInMillis
-                        add(Calendar.DAY_OF_YEAR, -1) // inclusive last day
+                        add(Calendar.DAY_OF_YEAR, -1)
                     }
                     "${startFmt.format(weekStart.time)} – ${endFmt.format(endDay.time)}"
                 }
