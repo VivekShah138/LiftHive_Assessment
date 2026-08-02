@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lifthive.domain.model.Exercise
 
+/**
+ * A card representing an exercise that has been added to the current workout session draft.
+ * Displays the exercise title, sets, reps, weight, and offers a delete option.
+ */
 @Composable
 fun AddedExerciseCard(
     exercise: Exercise,
