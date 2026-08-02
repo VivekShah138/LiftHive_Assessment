@@ -29,6 +29,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * A card displaying a ranking of the most frequently logged exercises.
+ * Renders a podium display for the top 3 with distinctive gold, silver, and bronze theme highlights,
+ * and a standard progress bar representing execution frequency relative to the maximum count.
+ */
 @Composable
 fun TopExercisesCard(
     topExercises: List<Pair<String, Int>>,
