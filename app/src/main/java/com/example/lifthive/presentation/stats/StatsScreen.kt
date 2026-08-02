@@ -441,9 +441,12 @@ fun WeeklyTrendCard(weeklyVolumes: List<Pair<String, Double>>) {
                 }
             } else {
                 val maxVol = weeklyVolumes.maxOf { it.second }.let { if (it == 0.0) 1.0 else it }
-                // All 4 weeks shown vertically — outer LazyColumn handles page scroll
+                // Fixed height = ~3 rows visible; user scrolls within this container to see more weeks
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(240.dp)
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     weeklyVolumes.forEach { (label, vol) ->
@@ -451,7 +454,7 @@ fun WeeklyTrendCard(weeklyVolumes: List<Pair<String, Double>>) {
                         val displayVol = if (vol >= 1000)
                             String.format(Locale.US, "%,.1fk", vol / 1000)
                         else String.format(Locale.US, "%,.0f", vol)
-                        val isThisWeek = label == "This week"
+                        val isThisWeek = label == "This Week"
 
                         Column(
                             modifier = Modifier.fillMaxWidth(),

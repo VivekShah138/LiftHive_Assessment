@@ -125,7 +125,17 @@ class GetStatsUseCase @Inject constructor(
                     timeInMillis = weekStart.timeInMillis
                     add(Calendar.DAY_OF_YEAR, 7)
                 }
-                val weekLabel = if (w == 0) "This week" else "-${w}w"
+                val weekLabel = if (w == 0) {
+                    "This Week"
+                } else {
+                    val startFmt = SimpleDateFormat("MMM d", Locale.getDefault())
+                    val endFmt   = SimpleDateFormat("MMM d", Locale.getDefault())
+                    val endDay   = Calendar.getInstance().apply {
+                        timeInMillis = weekEnd.timeInMillis
+                        add(Calendar.DAY_OF_YEAR, -1) // inclusive last day
+                    }
+                    "${startFmt.format(weekStart.time)} – ${endFmt.format(endDay.time)}"
+                }
                 val weekVol = workouts
                     .filter { it.date >= weekStart.timeInMillis && it.date < weekEnd.timeInMillis }
                     .sumOf { w2 -> w2.exercises.sumOf { it.sets * it.reps * it.weight } }
