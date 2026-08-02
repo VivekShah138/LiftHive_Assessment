@@ -2,20 +2,23 @@ package com.example.lifthive.presentation.navigation
 
 import kotlinx.serialization.Serializable
 
-@Serializable
-object SplashRoute
-
-@Serializable
-object HomeRoute
-
-@Serializable
-data class AddEditWorkoutRoute(val workoutId: Long? = 0L)
-
-@Serializable
-data class WorkoutDetailsRoute(val workoutId: Long)
-
-@Serializable
-object StatsRoute
-
-@Serializable
-object SettingsRoute
+sealed interface Screens {
+    
+    @Serializable
+    object Splash : Screens
+    
+    @Serializable
+    object Home : Screens
+    
+    @Serializable
+    data class AddEditWorkout(val workoutId: Long? = 0L) : Screens
+    
+    @Serializable
+    data class WorkoutDetails(val workoutId: Long) : Screens
+    
+    @Serializable
+    object Stats : Screens
+    
+    @Serializable
+    object Settings : Screens
+}

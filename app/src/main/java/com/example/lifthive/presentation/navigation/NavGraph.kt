@@ -20,30 +20,30 @@ fun SetupNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = SplashRoute
+        startDestination = Screens.Splash
     ) {
-        composable<SplashRoute> {
+        composable<Screens.Splash> {
             SplashScreen(navController = navController)
         }
         
-        composable<HomeRoute> {
+        composable<Screens.Home> {
             HomeScreen(navController = navController, mainViewModel = mainViewModel)
         }
         
-        composable<AddEditWorkoutRoute> {
+        composable<Screens.AddEditWorkout> {
             AddEditWorkoutScreen(navController = navController)
         }
         
-        composable<WorkoutDetailsRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<WorkoutDetailsRoute>()
+        composable<Screens.WorkoutDetails> { backStackEntry ->
+            val route = backStackEntry.toRoute<Screens.WorkoutDetails>()
             WorkoutDetailsScreen(navController = navController, workoutId = route.workoutId)
         }
         
-        composable<StatsRoute> {
+        composable<Screens.Stats> {
             StatsScreen(navController = navController)
         }
         
-        composable<SettingsRoute> {
+        composable<Screens.Settings> {
             SettingsScreen(navController = navController, mainViewModel = mainViewModel)
         }
     }

@@ -23,7 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import com.example.lifthive.domain.model.Exercise
-import com.example.lifthive.presentation.navigation.AddEditWorkoutRoute
+import com.example.lifthive.presentation.navigation.Screens
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -84,7 +84,7 @@ fun WorkoutDetailsScreen(
                 actions = {
                     state.workout?.let { workout ->
                         IconButton(onClick = {
-                            navController.navigate(AddEditWorkoutRoute(workoutId = workout.id))
+                            navController.navigate(Screens.AddEditWorkout(workoutId = workout.id))
                         }) {
                             Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit Workout", tint = MaterialTheme.colorScheme.primary)
                         }

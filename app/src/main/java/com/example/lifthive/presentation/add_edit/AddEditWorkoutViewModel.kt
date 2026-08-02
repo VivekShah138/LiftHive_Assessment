@@ -8,7 +8,7 @@ import com.example.lifthive.domain.model.Exercise
 import com.example.lifthive.domain.model.Workout
 import com.example.lifthive.domain.usecase.GetWorkoutByIdUseCase
 import com.example.lifthive.domain.usecase.SaveWorkoutUseCase
-import com.example.lifthive.presentation.navigation.AddEditWorkoutRoute
+import com.example.lifthive.presentation.navigation.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +30,7 @@ class AddEditWorkoutViewModel @Inject constructor(
     private var currentWorkoutId: Long = 0L
 
     init {
-        val route = savedStateHandle.toRoute<AddEditWorkoutRoute>()
+        val route = savedStateHandle.toRoute<Screens.AddEditWorkout>()
         val workoutIdArg = route.workoutId
         if (workoutIdArg != null && workoutIdArg != 0L) {
             currentWorkoutId = workoutIdArg

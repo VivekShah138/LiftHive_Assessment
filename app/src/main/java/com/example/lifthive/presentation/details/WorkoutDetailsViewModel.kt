@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.example.lifthive.domain.usecase.DeleteWorkoutUseCase
 import com.example.lifthive.domain.usecase.GetWorkoutByIdUseCase
-import com.example.lifthive.presentation.navigation.WorkoutDetailsRoute
+import com.example.lifthive.presentation.navigation.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +26,7 @@ class WorkoutDetailsViewModel @Inject constructor(
     val state: StateFlow<WorkoutDetailsState> = _state.asStateFlow()
 
     init {
-        val route = savedStateHandle.toRoute<WorkoutDetailsRoute>()
+        val route = savedStateHandle.toRoute<Screens.WorkoutDetails>()
         val id = route.workoutId
         loadWorkout(id)
     }
