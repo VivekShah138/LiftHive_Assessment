@@ -24,6 +24,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * A mini card display block showing a key workout metric (e.g. Current Streak, Total Sessions).
+ * Features a colorful icon, bold value text, and descriptive label.
+ */
 @Composable
 fun StatChip(
     icon: ImageVector,
