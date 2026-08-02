@@ -1,24 +1,33 @@
 package com.example.lifthive.presentation
 
-import android.app.Application
-import android.content.Context
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.lifthive.data.preferences.PreferencesDataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    application: Application
+    private val preferencesDataStore: PreferencesDataStore
 ) : ViewModel() {
-    private val prefs = application.getSharedPreferences("lifthive_prefs", Context.MODE_PRIVATE)
-    
-    private val _isDarkTheme = mutableStateOf(prefs.getBoolean("is_dark_theme", true))
+
+    private val _isDarkTheme = mutableStateOf(true)
     val isDarkTheme: State<Boolean> = _isDarkTheme
 
+    init {
+        viewModelScope.launch {
+            preferencesDataStore.isDarkTheme.collect { isDark ->
+                _isDarkTheme.value = isDark
+            }
+        }
+    }
+
     fun toggleTheme() {
-        _isDarkTheme.value = !_isDarkTheme.value
-        prefs.edit().putBoolean("is_dark_theme", _isDarkTheme.value).apply()
+        viewModelScope.launch {
+            preferencesDataStore.setTheme(!_isDarkTheme.value)
+        }
     }
 }
