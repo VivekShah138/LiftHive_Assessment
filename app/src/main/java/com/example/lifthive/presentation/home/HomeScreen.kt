@@ -35,7 +35,6 @@ import com.example.lifthive.domain.model.Workout
 import com.example.lifthive.domain.model.WorkoutStats
 import com.example.lifthive.presentation.MainViewModel
 import com.example.lifthive.presentation.navigation.Screens
-import kotlinx.coroutines.flow.snapshotFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -53,29 +52,12 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // ── Scroll-aware header visibility ──────────────────────────────────────
     val listState = rememberLazyListState()
     var isHeaderVisible by remember { mutableStateOf(true) }
-    var previousIndex by remember { mutableIntStateOf(0) }
-    var previousScrollOffset by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(listState) {
-        snapshotFlow {
-            Pair(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
-        }.collect { (index, offset) ->
-            val isScrollingDown = when {
-                index > previousIndex -> true
-                index < previousIndex -> false
-                else -> offset > previousScrollOffset
-            }
-            val delta = offset - previousScrollOffset
-            when {
-                isScrollingDown && (delta > 10 || index > previousIndex) -> isHeaderVisible = false
-                !isScrollingDown && (delta < -10 || index < previousIndex) -> isHeaderVisible = true
-            }
-            if (index == 0 && offset == 0) isHeaderVisible = true
-            previousIndex = index
-            previousScrollOffset = offset
+        snapshotFlow { listState.firstVisibleItemIndex }.collect { index ->
+            isHeaderVisible = index < 3
         }
     }
 
