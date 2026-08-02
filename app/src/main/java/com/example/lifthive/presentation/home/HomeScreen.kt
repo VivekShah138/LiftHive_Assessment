@@ -203,6 +203,9 @@ fun HomeScreen(
                                     workout = workout,
                                     onClick = {
                                         navController.navigate(Screens.WorkoutDetails(workoutId = workout.id))
+                                    },
+                                    onUseAsTemplate = {
+                                        navController.navigate(Screens.AddEditWorkout(templateWorkoutId = workout.id))
                                     }
                                 )
                             }
@@ -342,7 +345,8 @@ fun SearchBar(
 @Composable
 fun WorkoutItemCard(
     workout: Workout,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onUseAsTemplate: () -> Unit
 ) {
     val dateString = remember(workout.date) {
         val sdf = SimpleDateFormat("EEE, MMM dd", Locale.getDefault())
@@ -414,6 +418,32 @@ fun WorkoutItemCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(
+                    onClick = onUseAsTemplate,
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                    modifier = Modifier.height(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Use as Template",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
