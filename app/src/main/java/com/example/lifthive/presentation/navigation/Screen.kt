@@ -11,7 +11,7 @@ sealed interface Screens {
     object Home : Screens
     
     @Serializable
-    data class AddEditWorkout(val workoutId: Long? = 0L) : Screens
+    data class AddEditWorkout(val workoutId: Long? = 0L, val templateWorkoutId: Long? = 0L) : Screens
     
     @Serializable
     data class WorkoutDetails(val workoutId: Long) : Screens
