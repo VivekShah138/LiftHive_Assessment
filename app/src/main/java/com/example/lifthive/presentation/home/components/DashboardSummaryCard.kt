@@ -43,6 +43,11 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+/**
+ * A premium summary hero card displayed on the Home feed.
+ * Highlights current streaks, time-based greetings, daily training progress,
+ * and standard metrics (total sessions, volume, etc.) inside a gradient container.
+ */
 @Composable
 fun DashboardSummaryCard(
     stats: WorkoutStats,
@@ -213,6 +218,10 @@ fun DashboardSummaryCard(
     }
 }
 
+/**
+ * A mini key-value display block inside the DashboardSummaryCard.
+ * Combines an icon, value indicator, and short label.
+ */
 @Composable
 private fun HomeMiniStat(
     icon: ImageVector,
