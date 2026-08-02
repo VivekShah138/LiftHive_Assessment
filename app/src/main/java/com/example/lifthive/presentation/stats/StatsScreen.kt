@@ -441,13 +441,12 @@ fun WeeklyTrendCard(weeklyVolumes: List<Pair<String, Double>>) {
                 }
             } else {
                 val maxVol = weeklyVolumes.maxOf { it.second }.let { if (it == 0.0) 1.0 else it }
-                // Show only last 3 weeks (most recent 3), latest at bottom
-                val displayWeeks = weeklyVolumes.takeLast(3)
+                // All 4 weeks shown vertically — outer LazyColumn handles page scroll
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    displayWeeks.forEach { (label, vol) ->
+                    weeklyVolumes.forEach { (label, vol) ->
                         val fraction = (vol / maxVol).toFloat().coerceIn(0f, 1f)
                         val displayVol = if (vol >= 1000)
                             String.format(Locale.US, "%,.1fk", vol / 1000)
