@@ -232,14 +232,16 @@ fun HomeScreen(
                                     }
                                     true
                                 } else false
-                            }
+                            },
+                            positionalThreshold = { distance -> distance * 0.65f }
                         )
                         SwipeToDismissBox(
                             state = dismissState,
                             backgroundContent = {
-                                val color = if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
-                                    Color(0xFFE57373)
-                                } else Color.Transparent
+                                val isDismissing = dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart
+                                val color = if (isDismissing) Color(0xFFE57373) else Color.Transparent
+                                val scale = if (isDismissing) (dismissState.progress * 1.2f).coerceIn(0.5f, 1.2f) else 0.5f
+                                val alpha = if (isDismissing) dismissState.progress.coerceIn(0f, 1f) else 0f
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -248,11 +250,12 @@ fun HomeScreen(
                                         .padding(horizontal = 24.dp),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    if (dismissState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                                    if (isDismissing) {
                                         Icon(
                                             imageVector = Icons.Default.Delete,
                                             contentDescription = "Delete",
-                                            tint = Color.White
+                                            tint = Color.White.copy(alpha = alpha),
+                                            modifier = Modifier.size((24 * scale).dp)
                                         )
                                     }
                                 }
