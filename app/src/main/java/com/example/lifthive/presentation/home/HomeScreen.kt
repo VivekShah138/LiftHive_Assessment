@@ -308,7 +308,7 @@ fun SearchBar(
     TextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Search by workout title or exercise...") },
+        placeholder = { Text("Search title or exercise...", fontSize = 14.sp) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
