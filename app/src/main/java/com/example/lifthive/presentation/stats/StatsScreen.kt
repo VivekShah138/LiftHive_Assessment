@@ -401,23 +401,77 @@ fun WorkoutContributionGraph(
                 }.toSet()
             }
 
+            // Compute Month Labels to display above the grid columns
+            val monthLabels = remember(startDateMillis) {
+                val labels = mutableListOf<Pair<Int, String>>() // Pair of (Week index, Month Name)
+                val cal = Calendar.getInstance()
+                var lastMonth = -1
+                for (w in 0 until 12) {
+                    cal.timeInMillis = startDateMillis
+                    cal.add(Calendar.DAY_OF_YEAR, w * 7)
+                    val currentMonth = cal.get(Calendar.MONTH)
+                    if (currentMonth != lastMonth) {
+                        val monthName = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, Locale.getDefault()) ?: ""
+                        labels.add(Pair(w, monthName))
+                        lastMonth = currentMonth
+                    }
+                }
+                labels
+            }
+
+            // Month Labels Header Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 32.dp), // Skip the Day label column width (24dp) + spacer (4dp) + gap (4dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                for (w in 0 until 12) {
+                    val label = monthLabels.firstOrNull { it.first == w }?.second ?: ""
+                    Box(
+                        modifier = Modifier.width(12.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (label.isNotEmpty()) {
+                            Text(
+                                text = label,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Visible,
+                                modifier = Modifier.requiredWidth(36.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Day of week labels
+                // Day of week labels (Sun, Tue, Thu, Sat)
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(top = 2.dp)
+                    modifier = Modifier.width(24.dp) // Generous fixed width to prevent text truncation
                 ) {
                     val days = listOf("Sun", "", "Tue", "", "Thu", "", "Sat")
                     days.forEach { day ->
-                        Text(
-                            text = day,
-                            fontSize = 8.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                            modifier = Modifier.height(12.dp)
-                        )
+                        Box(
+                            modifier = Modifier.height(12.dp), // Match exact height of cells
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (day.isNotEmpty()) {
+                                Text(
+                                    text = day,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
                     }
                 }
 
