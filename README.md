@@ -105,3 +105,24 @@ com.example.lifthive
 3. Sync Gradle and build the project.
 4. Run the application on an emulator or a physical device.
 5. Head to **Settings** (Gear icon on Top Right) -> click **Load Demo Data** to populate the application with a pre-seeded, rich 4-week training history to explore the charts and analytics dashboard.
+
+---
+
+## 🚀 Final Note
+
+By the way… this whole app was built in just 24 hours because that was the assessment deadline 😅
+
+So if you find any bugs, weird UI spacing, or a button that looks like it had an identity crisis at 3 AM… please be kind and forgive me.
+
+I was basically running on caffeine, determination, and questionable sleep decisions ☕💀
+
+That said, I gave it my best and had a lot of fun building it.
+
+If you find this project impressive, helpful, or just appreciate the 24-hour survival story — please consider leaving a ⭐ on the repo.
+
+Stars are like coffee for developers. They keep us alive.
+
+Thanks for checking out LiftHive ❤️
+
+LiftHive is a premium, feature-rich Android training journal built as part of the Android Developer Take-home Assessment.
+
