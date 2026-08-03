@@ -108,21 +108,20 @@ com.example.lifthive
 
 ---
 
-## 🚀 Final Note
+## ⚡ Behind the Iron: A 24-Hour Coding Session
 
-By the way… this whole app was built in just 24 hours because that was the assessment deadline 😅
+This entire app was hammered out, modularized, and polished in a non-stop **24-hour sprint** to beat the assessment clock! ⏳
 
-So if you find any bugs, weird UI spacing, or a button that looks like it had an identity crisis at 3 AM… please be kind and forgive me.
+Behind this premium dark fitness aesthetic lies:
+- **3 cups of cold brew coffee** ☕
+- **A lot of compiler-induced adrenaline** ⚡
+- **A complete disregard for standard sleep cycles** 💀
 
-I was basically running on caffeine, determination, and questionable sleep decisions ☕💀
+If you run into any minor spacing alignments or logic quirks, remember they were written at 3:00 AM when the screen was glowing brighter than my future. 
 
-That said, I gave it my best and had a lot of fun building it.
+### 🙌 Show Some Support!
+If you appreciate the 24-hour survival story, the custom Canvas charts, or the Clean Architecture UDF flow, please drop a ⭐ on this repository! It keeps the caffeine flowing and the code compiling.
 
-If you find this project impressive, helpful, or just appreciate the 24-hour survival story — please consider leaving a ⭐ on the repo.
+Thanks for stepping into the LiftHive. Let's build those gains! 🏋️‍♂️🔥
 
-Stars are like coffee for developers. They keep us alive.
-
-Thanks for checking out LiftHive ❤️
-
-LiftHive is a premium, feature-rich Android training journal built as part of the Android Developer Take-home Assessment.
 
